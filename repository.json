@@ -1,0 +1,24 @@
+{
+  "$schema": "sublime://packagecontrol.io/schemas/repository",
+  "schema_version": "3.0.0",
+  "packages": [
+    {
+      "name": "GitHub Pull Request",
+      "details": "https://github.com/ViBiOh/Sublime-GithubPullRequest",
+      "homepage": "https://github.com/ViBiOh/Sublime-GithubPullRequest",
+      "author": [
+        "ViBiOh"
+      ],
+      "labels": [
+        "github",
+        "pull-request"
+      ],
+      "releases": [
+        {
+          "sublime_text": ">=4205",
+          "tags": true
+        }
+      ]
+    }
+  ]
+}

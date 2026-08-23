@@ -1,5 +1,9 @@
 target-version = "py38"
 
+# Ruff also formats python fenced in markdown; DESIGN.md's blocks are hand-aligned
+# interface documentation, not code, so they are out of scope.
+extend-exclude = ["*.md"]
+
 [lint]
 # Explicit, because ruff's default is only E4/E7/E9/F: without this the two ignores below
 # would be muting rules that were never enabled, and the package would be linted far more
@@ -33,6 +37,7 @@ extend-ignore = [
     "PLR0912",
     "PLR0913",
     "PLR0915",
+    "PLR0917",
     # anchors._THREADS_STAMP is module state invalidated from plugin.py, and `global`
     # cannot cross modules, hence bump_threads_stamp.
     "PLW0603",
