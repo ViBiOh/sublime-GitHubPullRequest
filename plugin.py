@@ -49,6 +49,13 @@ from .githubpullrequest.state import SESSION
 
 SETTINGS_FILE = "GithubPullRequest.sublime-settings"
 
+# The folder this package was installed into, which is what a `Packages/<folder>/...`
+# resource path has to name. Read off the module name rather than hardcoded: Package
+# Control uses the name from repository.json while a development checkout is whatever
+# the clone is called, and a wrong literal fails silently (the resource just does not
+# load). For a root-level plugin module Sublime sets `__name__` to "<folder>.plugin".
+PACKAGE = __name__.split(".")[0]
+
 REGION_KEY = "githubpullrequest.threads"
 DRAFT_REGION_KEY = "githubpullrequest.drafts"
 STATUS_KEY = "githubpullrequest.status"
@@ -895,9 +902,7 @@ def _files_panel(window):
         settings.set("gutter", False)
         settings.set("scroll_past_end", False)
 
-        panel.assign_syntax(
-            "Packages/GithubPullRequest/GithubPullRequestFiles.sublime-syntax"
-        )
+        panel.assign_syntax(f"Packages/{PACKAGE}/GithubPullRequestFiles.sublime-syntax")
 
     panel.settings().set("result_base_dir", SESSION.root)
 
@@ -1134,6 +1139,11 @@ class GithubPullRequestAddCommentCommand(sublime_plugin.TextCommand):
 class GithubPullRequestSubmitCommentCommand(sublime_plugin.TextCommand):
     """Submit the compose buffer's body — queue a new comment or update an edited
     one, per its context (bound to save). Closing without saving cancels."""
+
+    def is_enabled(self):
+        # Only ever meaningful in a compose buffer, and it is listed in the Tools menu
+        # (so its Save binding is discoverable), where it has to grey out elsewhere.
+        return bool(self.view.settings().get("github_pull_request_compose"))
 
     def run(self, edit):
         settings = self.view.settings()
