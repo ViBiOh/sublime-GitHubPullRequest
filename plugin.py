@@ -245,11 +245,14 @@ def _apply_reference_document(view, path):
 
     SESSION.base_blob_pending.add(path)
     is_new = bool(entry and entry["file_diff"].is_new)
+    # A renamed file is absent from the merge base under its head path, so the blob has
+    # to be fetched under the path it had back then.
+    base_path = entry["base_path"] if entry else path
 
     def worker():
         base = None
         try:
-            base = SESSION.review.base_blob(path)
+            base = SESSION.review.base_blob(base_path)
         except (GHError, OSError, subprocess.SubprocessError):
             base = None
 

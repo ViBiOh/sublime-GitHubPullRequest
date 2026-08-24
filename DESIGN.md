@@ -325,7 +325,10 @@ class Review:
         """read-only `git merge-base HEAD origin/<base>` (fallback <base>). Cached."""
 
     def changed_files(self) -> List[Dict]:
-        """Parse gh.pr_diff() -> [{'path','additions','deletions','is_binary','file_diff': FileDiff}]."""
+        """Parse gh.pr_diff() -> [{'path','base_path','additions','deletions','is_binary','file_diff': FileDiff}].
+           `path` is the head-side path (what the reviewer has open); `base_path` is where the
+           file lived at the merge base (`old_path`, so it differs on a rename). Every base-side
+           lookup MUST use base_path: a renamed file has no blob under its head path there."""
 
     def review_threads(self) -> List[Dict]:
         """GraphQL pullRequest.reviewThreads (paginated). Each thread dict per the shape below.
@@ -338,7 +341,8 @@ class Review:
            thread node (_THREAD_COMMENTS_QUERY via _all_comments)."""
 
     def base_blob(self, path: str) -> Optional[str]:
-        """read-only `git show <merge_base>:<path>` -> text, or None (added file / not found)."""
+        """read-only `git show <merge_base>:<path>` -> text, or None (added file / not found).
+           `path` is a BASE-side path: callers pass the entry's `base_path`, never its head path."""
 
     # --- server-backed draft queue (a real GitHub PENDING review) ---
     # State: _pr_node_id (GraphQL PR id), _pending_review_id (None until created),

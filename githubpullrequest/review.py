@@ -237,6 +237,11 @@ class Review:
             files.append(
                 {
                     "path": file_diff.path,
+                    # Where the file lived at the merge base, which is what a base-side
+                    # lookup has to use: a renamed file's head path does not exist there,
+                    # so `git show merge_base:<head path>` fails and the gutter diff would
+                    # silently show nothing at all.
+                    "base_path": file_diff.old_path or file_diff.path,
                     "additions": file_diff.additions,
                     "deletions": file_diff.deletions,
                     "is_binary": file_diff.is_binary,
