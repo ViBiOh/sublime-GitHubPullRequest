@@ -1,10 +1,7 @@
 import subprocess
 import unittest
 
-try:
-    from .owners import codeowners_map
-except ImportError:
-    from owners import codeowners_map
+from .owners import codeowners_map
 
 
 class ScriptedRunner:

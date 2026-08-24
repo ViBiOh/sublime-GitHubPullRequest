@@ -55,7 +55,7 @@ jobs:
         with:
           python-version-file: .python-version
       - name: Compile sublime glue
-        run: python3 -m py_compile plugin.py anchors.py
+        run: python3 -m py_compile plugin.py githubpullrequest/anchors.py
 
   test:
     name: Test

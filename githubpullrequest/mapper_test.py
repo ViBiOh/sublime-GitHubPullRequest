@@ -2,12 +2,8 @@ import difflib
 import unittest
 from types import SimpleNamespace
 
-try:
-    from . import mapper
-    from .mapper import LineMap, head_anchor, head_row_to_buffer_row
-except ImportError:
-    import mapper
-    from mapper import LineMap, head_anchor, head_row_to_buffer_row
+from . import mapper
+from .mapper import LineMap, head_anchor, head_row_to_buffer_row
 
 
 def _line(origin, old_lineno, new_lineno, content):

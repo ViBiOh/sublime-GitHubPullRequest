@@ -10,13 +10,10 @@ import os
 import re
 import unittest
 
-try:
-    from .labels import label_tag
-except ImportError:
-    from labels import label_tag
+from .labels import label_tag
 
-_HERE = os.path.dirname(os.path.abspath(__file__))
-_SETTINGS = os.path.join(_HERE, "GithubPullRequest.sublime-settings")
+_PACKAGE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_SETTINGS = os.path.join(_PACKAGE, "GithubPullRequest.sublime-settings")
 
 _COMMENT_LINE_RE = re.compile(r"^\s*//.*$", re.MULTILINE)
 

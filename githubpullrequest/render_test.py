@@ -1,9 +1,6 @@
 import unittest
 
-try:
-    from . import render
-except ImportError:
-    import render
+from . import render
 
 
 class EncodeDecodeTest(unittest.TestCase):

@@ -2,14 +2,9 @@ import contextlib
 import subprocess
 from typing import Callable, Dict, List, Optional, Tuple
 
-try:
-    from .diff import parse_unified_diff
-    from .gh import GHError
-    from .urls import parse_pr_url
-except ImportError:
-    from diff import parse_unified_diff
-    from gh import GHError
-    from urls import parse_pr_url
+from .diff import parse_unified_diff
+from .gh import GHError
+from .urls import parse_pr_url
 
 _DEFAULT_TIMEOUT = 30
 

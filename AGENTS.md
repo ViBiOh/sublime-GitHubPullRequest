@@ -6,11 +6,29 @@ Guidance for an AI agent (or human) extending this Sublime Text 4 plugin. Read `
 
 - **Never mutate git.** The whole point of this plugin is that it touches zero git state. Only read-only git is allowed: `git show`, `git merge-base`, `git rev-parse`. No checkout / branch / reset / add / commit — not at runtime, not in tests.
 - **All network/git I/O goes through `gh`** (subprocess). Never read the token, never use `requests`/`urllib` for GitHub.
-- **Keep the core `sublime`-free.** Only `plugin.py` and `anchors.py` may `import sublime`. Everything else (`urls`, `diff`, `mapper`, `render`, `gh`, `review`, `state`, `repo`, `owners`, `layout`, `labels`, `panel`) must not, which keeps it unit-testable headlessly. When a helper needs a view, duck-type it (`repo.rel_path` only calls `view.file_name()`) instead of importing `sublime`.
+- **`plugin.py` is the only root-level module.** Sublime loads every root-level `.py` as an independent plugin, so all shared code lives in the `githubpullrequest/` subpackage; see **Package layout**.
+- **Keep the core `sublime`-free.** Only `plugin.py` and `githubpullrequest/anchors.py` may `import sublime`. Everything else (`urls`, `diff`, `mapper`, `render`, `gh`, `review`, `state`, `repo`, `owners`, `layout`, `labels`, `panel`) must not, which keeps it unit-testable headlessly. When a helper needs a view, duck-type it (`repo.rel_path` only calls `view.file_name()`) instead of importing `sublime`.
+
+## Package layout
+
+Sublime Text imports every root-level `.py` of a package as an INDEPENDENT plugin: it scans each for command/listener classes, calls its `plugin_loaded`, and reloads it on its own when the file changes. A root module importing another root module therefore gets a second, separately-reloaded copy of it, and for `state.SESSION` that means two singletons where one silently does nothing. Package Control flags it (`Do not import root-level plugin module ...`).
+
+So the root holds `plugin.py` and the resource files only; everything else is a submodule of `githubpullrequest/`:
+
+```
+plugin.py                 # the only root-level plugin: commands + listener
+githubpullrequest/        # shared code, imported by plugin.py, never by Sublime directly
+  __init__.py
+  anchors.py state.py review.py ... *_test.py
+```
+
+Imports are plain relative ones: `from .state import SESSION` inside the subpackage, `from .githubpullrequest.state import SESSION` in `plugin.py`. There is no `try: from .x / except ImportError: from x` fallback any more, and adding one back would be a bug: the subpackage resolves relatively under both Sublime and `python3 -m unittest discover` (run from the package root, which finds `githubpullrequest` because of its `__init__.py`).
+
+A new module goes in the subpackage. Only a module that Sublime itself must load as a plugin belongs at the root, and `plugin.py` already covers that.
 
 ## Architecture
 
-Two layers:
+Two layers, both under `githubpullrequest/` except `plugin.py`:
 
 **Pure-Python core** (no `sublime`, fully unit-tested):
 
@@ -66,13 +84,7 @@ GraphQL returns at most 100 rows of a NESTED connection regardless of the outer 
 
 - **Python 3.8-safe, stdlib only.** No `X | Y` unions, no builtin generics in annotations (`typing.List/Optional/Dict/Tuple`), no `match`, no `str.removeprefix`. The Sublime plugin host is 3.8. Nothing at runtime enforces that: `.python-version` says 3.14 so the tests run on a current interpreter, and `ruff.toml`'s `target-version = "py38"` is the ONLY guard (it is what stops `UP` from suggesting syntax the host cannot run). Do not drop it, and do not assume a passing test run means host-compatible.
 - **`ruff.toml` selects its rules explicitly.** Ruff's default is only `E4`/`E7`/`E9`/`F`, so `extend-ignore` entries for anything else are inert — `PLW1510` and `FA100` were being "muted" while never enabled, and the package was linted far more thinly than these checks claimed. The `select` list is now explicit and the ignores each carry their reason. If you add an ignore, confirm its family is selected.
-- **Dual-import** in every module so tests run standalone and inside Sublime:
-  ```python
-  try:
-      from .diff import parse_unified_diff
-  except ImportError:
-      from diff import parse_unified_diff
-  ```
+- **Relative imports only**, and only downward: the subpackage never imports `plugin`. See **Package layout** for why the old dual-import pattern is gone.
 - **Tests**: `unittest`, files named `*_test.py`, in the same module namespace, dict-keyed table cases (`cases = {"name": (...)}` + `subTest`). Core modules mock `gh`/git via injected runners — never hit the network or real git.
 - **Diff the buffer against the PR HEAD COMMIT, never local `HEAD`.** `LineMap` decides what is commentable from `gh pr diff`, whose line numbers are relative to the PR head. Any commit on the branch the PR does not have (unpushed, amended, or made after opening the PR) shifts local HEAD away from it, and then every mapped line is off: comments land on the wrong line, or a line that IS in the diff is rejected as "the pull request does not change these lines". `anchors._base_rev` returns `SESSION.pr["head_oid"]` (from `pr_view`'s `headRefOid`) and only falls back to `HEAD` when unknown. Do not "simplify" it back to `HEAD`.
 - **Panel lines are head-commit lines.** Everything stored from GitHub (thread lines, draft lines, hunk starts) is numbered against the PR head commit, NOT the live buffer. Any surface that points at a line must translate through `anchors.remap_head_row` or it will be wrong the moment the reviewer edits the file: gutter icons do, and so does the files panel via the `to_buffer_line` injected by `plugin._files_panel_body`. `panel.py` cannot do it itself (translation needs a view, and that module stays `sublime`-free), hence the injection. The mapping also goes stale on every keystroke, so `on_modified_async` redraws both surfaces through the `_redraw_when_settled` debounce; do NOT redraw per edit, each one costs a `git show` plus a full diff.
@@ -98,10 +110,10 @@ cd tools/sublime/plugins/GithubPullRequest
 python3 -m unittest discover -p '*_test.py'   # core: must be green
 ruff check .                                   # whole package
 ruff format .
-python3 -m py_compile plugin.py anchors.py     # glue: syntax only (imports sublime)
+python3 -m py_compile plugin.py githubpullrequest/anchors.py   # glue: syntax only (imports sublime)
 ```
 
-The glue (`plugin.py`, `anchors.py` — NOT `state.py`, which imports no `sublime` and is unit-tested in `state_test.py`) cannot be exercised outside Sublime. Verify it by loading the package and driving a real PR. Watch: `set_reference_document` behavior on buffer edits, popup lifecycle, gutter-icon anchoring after the buffer changes, and that a load with several PR files open does not stall the UI (the threading rule above).
+The glue (`plugin.py`, `githubpullrequest/anchors.py` — NOT `state.py`, which imports no `sublime` and is unit-tested in `state_test.py`) cannot be exercised outside Sublime. Verify it by loading the package and driving a real PR. Watch: `set_reference_document` behavior on buffer edits, popup lifecycle, gutter-icon anchoring after the buffer changes, and that a load with several PR files open does not stall the UI (the threading rule above).
 
 ## Known minor issues / deferred (good first tasks)
 
@@ -114,7 +126,7 @@ The glue (`plugin.py`, `anchors.py` — NOT `state.py`, which imports no `sublim
 
 ## Where things plug in
 
-- New command → add a `GithubPullRequest<Verb>Command` in `plugin.py` and an entry in `.sublime-commands`.
-- New gh/GraphQL call → add a method to `gh.py` or `review.py` with a mocked-runner test; call it from the glue under `_async`.
+- New command → add a `GithubPullRequest<Verb>Command` in `plugin.py` (the root module, since Sublime only discovers commands there) and an entry in `.sublime-commands`.
+- New gh/GraphQL call → add a method to `githubpullrequest/gh.py` or `githubpullrequest/review.py` with a mocked-runner test; call it from the glue under `_async`.
 - New popup/panel content → build the string in `render.py` (pure, add a test); render it from `plugin.py`.
 - Registration into the dotfiles installer lives in `tools/sublime/init.sh` (`install_plugin ... GithubPullRequest`).

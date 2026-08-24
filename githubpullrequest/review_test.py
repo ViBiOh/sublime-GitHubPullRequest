@@ -1,13 +1,8 @@
 import json
 import unittest
 
-try:
-    from .gh import GH, GHError
-    from .review import CommentRejected, Review
-except ImportError:
-    from gh import GH, GHError
-    from review import CommentRejected, Review
-
+from .gh import GH, GHError
+from .review import CommentRejected, Review
 
 _PR_VIEW = {
     "number": 42,

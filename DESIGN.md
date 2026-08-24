@@ -13,15 +13,9 @@ Deliberately out of scope: deleted-line phantoms and LEFT-side (deleted-line) co
 ## Runtime constraints (BINDING for all modules)
 
 - **Python 3.8-safe, stdlib only.** The Sublime plugin host is Python 3.8. No `match`, no `X | Y` type unions, no `list[int]` builtin generics in annotations (use `typing.List`), no walrus abuse. `requests` is forbidden (breaks on the host); all network I/O goes through `gh`.
-- **Dual-import pattern** so tests run standalone AND inside Sublime:
-  ```python
-  try:
-      from .diff import parse_unified_diff
-  except ImportError:
-      from diff import parse_unified_diff
-  ```
-- **`sublime` / `sublime_plugin` may be imported ONLY by the glue layer** (`plugin.py`, `anchors.py`). Every other module (`urls`, `diff`, `mapper`, `render`, `gh`, `review`, `state`, `repo`, `owners`, `layout`, `labels`, `panel`) must import neither, so it is testable with plain `python3 -m unittest`. When something needs a view, prefer duck-typing it (`repo.rel_path` only calls `view.file_name()`) over reaching for `sublime`.
-- Tests: `unittest`, files named `*_test.py`, **dict-keyed table cases** (`cases = {"name": (...)}`), in the SAME module namespace (no separate test package). Run `python3 -m unittest discover -p '*_test.py'`, `ruff check .`, `ruff format .`, and `python3 -m py_compile plugin.py anchors.py` (the two `sublime` importers) in the package dir. `ruff.toml` pins `target-version = "py38"` so the linter never suggests syntax the plugin host cannot run — it is the ONLY thing enforcing that, since `.python-version` is 3.14 so the tests run on a current interpreter.
+- **One root-level plugin module.** Sublime loads every root-level `.py` as an independent plugin (its own scan for commands, its own `plugin_loaded`, its own reload), so a root module importing another root module ends up with a second copy of that module's state, which is fatal for the `SESSION` singleton. Only `plugin.py` sits at the package root; every other module is a submodule of `githubpullrequest/`, imported relatively (`from .state import SESSION`, and `from .githubpullrequest.state import SESSION` in `plugin.py`). No `try/except ImportError` import fallback: the subpackage resolves relatively under Sublime and under `unittest discover` alike.
+- **`sublime` / `sublime_plugin` may be imported ONLY by the glue layer** (`plugin.py`, `githubpullrequest/anchors.py`). Every other module (`urls`, `diff`, `mapper`, `render`, `gh`, `review`, `state`, `repo`, `owners`, `layout`, `labels`, `panel`) must import neither, so it is testable with plain `python3 -m unittest`. When something needs a view, prefer duck-typing it (`repo.rel_path` only calls `view.file_name()`) over reaching for `sublime`.
+- Tests: `unittest`, files named `*_test.py`, **dict-keyed table cases** (`cases = {"name": (...)}`), in the SAME module namespace as the code they cover (no separate test package). From the package root run `python3 -m unittest discover -p '*_test.py'`, `ruff check .`, `ruff format .`, and `python3 -m py_compile plugin.py githubpullrequest/anchors.py` (the two `sublime` importers). `ruff.toml` pins `target-version = "py38"` so the linter never suggests syntax the plugin host cannot run — it is the ONLY thing enforcing that, since `.python-version` is 3.14 so the tests run on a current interpreter.
 
 ## GitHub coordinate model (READ THIS before touching mapper/review)
 

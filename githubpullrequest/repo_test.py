@@ -2,12 +2,8 @@ import os
 import unittest
 from types import SimpleNamespace
 
-try:
-    from . import repo
-    from .state import SESSION
-except ImportError:
-    import repo
-    from state import SESSION
+from . import repo
+from .state import SESSION
 
 
 def _view(file_name):
