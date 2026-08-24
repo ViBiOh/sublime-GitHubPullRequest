@@ -37,13 +37,40 @@ def drafts_for_path(path: str) -> List[Tuple[int, Dict]]:
     ]
 
 
-def first_hunk_line(path: str) -> int:
-    """Head-side start line of the file's first hunk (else line 1)."""
+def _hunk_change_line(hunk) -> Optional[int]:
+    """Head-side line of the hunk's first added or removed line, or None when the hunk
+    is all context.
+
+    A `+` line carries its own head line number. A `-` line does not exist on the head
+    side at all, so it is anchored at the position it was removed from: one past the
+    last context line, or the hunk start when the removal opens the hunk."""
+    next_new = hunk.new_start
+
+    for line in hunk.lines:
+        if line.origin == "+":
+            return line.new_lineno
+
+        if line.origin == "-":
+            return next_new
+
+        if line.new_lineno:
+            next_new = line.new_lineno + 1
+
+    return None
+
+
+def first_change_line(path: str) -> int:
+    """Head-side line of the file's first actual change (else line 1).
+
+    NOT the first hunk's start: a hunk opens with up to 3 lines of unchanged context, so
+    its `new_start` points a few lines above anything that changed and disagrees with the
+    line GitHub shows for the same file."""
     entry = SESSION.files_by_path.get(path)
     if entry:
-        hunks = entry["file_diff"].hunks
-        if hunks:
-            return hunks[0].new_start
+        for hunk in entry["file_diff"].hunks:
+            line = _hunk_change_line(hunk)
+            if line:
+                return line
 
     return 1
 
@@ -68,7 +95,7 @@ def first_comment_line(path: str) -> int:
         if lines:
             return min(lines)
 
-    return first_hunk_line(path)
+    return first_change_line(path)
 
 
 def _identity_line(path: str, head_line: int) -> int:
@@ -77,7 +104,7 @@ def _identity_line(path: str, head_line: int) -> int:
 
 def _file_row(entry: Dict, marker: str, to_buffer_line) -> str:
     path = entry["path"]
-    line = to_buffer_line(path, first_hunk_line(path))
+    line = to_buffer_line(path, first_change_line(path))
     stats = f"+{entry.get('additions', 0)} -{entry.get('deletions', 0)}"
     row = f"{marker}{stats.ljust(_PATH_COL)}{path}:{line}"
 
