@@ -143,12 +143,14 @@ Override any of these in `Packages/User/GithubPullRequest.sublime-settings`.
 
 ## 🛠️ Hacking
 
-Only `plugin.py` and `anchors.py` import `sublime`. Everything else (`urls`, `diff`, `mapper`, `render`, `gh`, `review`, `state`, `repo`, `owners`, `layout`, `labels`, `panel`) stays free of it, so it is unit-tested headlessly; those two get a syntax check instead.
+Only `plugin.py` and `githubpullrequest/anchors.py` import `sublime`. Everything else (`urls`, `diff`, `mapper`, `render`, `gh`, `review`, `state`, `repo`, `owners`, `layout`, `labels`, `panel`) stays free of it, so it is unit-tested headlessly; those two get a syntax check instead.
+
+`plugin.py` is the only root-level module, because Sublime loads each root-level `.py` as a separate plugin; all shared code lives in the `githubpullrequest/` subpackage.
 
 ```sh
 python3 -m unittest discover -p '*_test.py'
 ruff check . && ruff format .
-python3 -m py_compile plugin.py anchors.py
+python3 -m py_compile plugin.py githubpullrequest/anchors.py
 ```
 
 See `AGENTS.md` for the architecture tour and `DESIGN.md` for the interface contracts.

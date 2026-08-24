@@ -1,10 +1,6 @@
 import unittest
 
-try:
-    from .diff import parse_unified_diff
-except ImportError:
-    from diff import parse_unified_diff
-
+from .diff import parse_unified_diff
 
 SINGLE = """diff --git a/foo.txt b/foo.txt
 index 1111111..2222222 100644

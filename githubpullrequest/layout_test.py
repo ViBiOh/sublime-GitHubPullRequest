@@ -1,10 +1,6 @@
 import unittest
 
-try:
-    from .layout import split_below_layout
-except ImportError:
-    from layout import split_below_layout
-
+from .layout import split_below_layout
 
 _SINGLE = {"cols": [0.0, 1.0], "rows": [0.0, 1.0], "cells": [[0, 0, 1, 1]]}
 _TWO_COLUMNS = {

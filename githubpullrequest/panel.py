@@ -7,12 +7,8 @@ GithubPullRequestFiles.sublime-syntax, not here."""
 
 from typing import Dict, FrozenSet, List, Optional, Tuple
 
-try:
-    from .mapper import draft_span, thread_start_line
-    from .state import SESSION
-except ImportError:
-    from mapper import draft_span, thread_start_line
-    from state import SESSION
+from .mapper import draft_span, thread_start_line
+from .state import SESSION
 
 # Width the `path:line` nav token is padded to, so file rows and their indented
 # comment sub-rows line up in a column.

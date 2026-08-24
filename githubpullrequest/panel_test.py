@@ -2,12 +2,8 @@ import re
 import unittest
 from types import SimpleNamespace
 
-try:
-    from . import panel
-    from .state import SESSION
-except ImportError:
-    import panel
-    from state import SESSION
+from . import panel
+from .state import SESSION
 
 
 def _entry(path, additions=1, deletions=0, hunk_start=1):

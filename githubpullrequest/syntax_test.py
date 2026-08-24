@@ -10,13 +10,10 @@ import os
 import re
 import unittest
 
-try:
-    from . import panel
-except ImportError:
-    import panel
+from . import panel
 
-_HERE = os.path.dirname(os.path.abspath(__file__))
-_SYNTAX = os.path.join(_HERE, "GithubPullRequestFiles.sublime-syntax")
+_PACKAGE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_SYNTAX = os.path.join(_PACKAGE, "GithubPullRequestFiles.sublime-syntax")
 
 _MATCH_RE = re.compile(r"^\s*-\s*match:\s*(.+?)\s*$", re.MULTILINE)
 _SCOPE_RE = re.compile(r"^\s*(?:scope|\d+):\s*(\S+)\s*$", re.MULTILINE)
@@ -150,7 +147,9 @@ class SyntaxTest(unittest.TestCase):
         # font_style (italic/bold) is the only thing a syntax cannot express, and it is no
         # longer used, so the package must not ship a color-scheme override to maintain.
         overrides = [
-            name for name in os.listdir(_HERE) if name.endswith(".sublime-color-scheme")
+            name
+            for name in os.listdir(_PACKAGE)
+            if name.endswith(".sublime-color-scheme")
         ]
 
         self.assertEqual(overrides, [])

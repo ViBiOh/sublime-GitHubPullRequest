@@ -2,12 +2,8 @@ import json
 import subprocess
 import unittest
 
-try:
-    from . import gh as ghmod
-    from .gh import GH, GHError
-except ImportError:
-    import gh as ghmod
-    from gh import GH, GHError
+from . import gh as ghmod
+from .gh import GH, GHError
 
 
 def _raiser(exc):

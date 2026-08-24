@@ -18,14 +18,9 @@ import difflib
 
 import sublime
 
-try:
-    from .mapper import draft_span, head_anchor, head_row_to_buffer_row, thread_span
-    from .repo import rel_path, run_git
-    from .state import SESSION
-except ImportError:
-    from mapper import draft_span, head_anchor, head_row_to_buffer_row, thread_span
-    from repo import rel_path, run_git
-    from state import SESSION
+from .mapper import draft_span, head_anchor, head_row_to_buffer_row, thread_span
+from .repo import rel_path, run_git
+from .state import SESSION
 
 # Opcodes (the PR head commit vs the live buffer) per view, keyed by the view's
 # change_count so a `git show` is paid only when the buffer actually changed.

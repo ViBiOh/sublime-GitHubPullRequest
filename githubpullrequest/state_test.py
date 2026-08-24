@@ -3,10 +3,7 @@ since every command reads it and `reset` is what End review relies on to leave n
 
 import unittest
 
-try:
-    from .state import SESSION
-except ImportError:
-    from state import SESSION
+from .state import SESSION
 
 
 class FakeReview:

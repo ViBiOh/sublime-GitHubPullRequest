@@ -19,62 +19,33 @@ import webbrowser
 import sublime
 import sublime_plugin
 
-try:
-    from . import render
-    from .anchors import (
-        bump_threads_stamp,
-        clear_caches,
-        draft_rows,
-        forget_view,
-        remap_head_row,
-        selection_to_head,
-        thread_row,
-        thread_rows,
-        warm_opcodes,
-    )
-    from .gh import GH, GHError
-    from .labels import label_tag
-    from .layout import split_below_layout
-    from .mapper import (
-        LineMap,
-        payload_range_label,
-        payload_span,
-        thread_span,
-        thread_start_line,
-    )
-    from .owners import codeowners_map
-    from .panel import drafts_for_path, files_panel_text
-    from .repo import abs_path, git_root, rel_path, run_git
-    from .review import CommentRejected, Review
-    from .state import SESSION
-except ImportError:
-    import render
-    from anchors import (
-        bump_threads_stamp,
-        clear_caches,
-        draft_rows,
-        forget_view,
-        remap_head_row,
-        selection_to_head,
-        thread_row,
-        thread_rows,
-        warm_opcodes,
-    )
-    from gh import GH, GHError
-    from labels import label_tag
-    from layout import split_below_layout
-    from mapper import (
-        LineMap,
-        payload_range_label,
-        payload_span,
-        thread_span,
-        thread_start_line,
-    )
-    from owners import codeowners_map
-    from panel import drafts_for_path, files_panel_text
-    from repo import abs_path, git_root, rel_path, run_git
-    from review import CommentRejected, Review
-    from state import SESSION
+from .githubpullrequest import render
+from .githubpullrequest.anchors import (
+    bump_threads_stamp,
+    clear_caches,
+    draft_rows,
+    forget_view,
+    remap_head_row,
+    selection_to_head,
+    thread_row,
+    thread_rows,
+    warm_opcodes,
+)
+from .githubpullrequest.gh import GH, GHError
+from .githubpullrequest.labels import label_tag
+from .githubpullrequest.layout import split_below_layout
+from .githubpullrequest.mapper import (
+    LineMap,
+    payload_range_label,
+    payload_span,
+    thread_span,
+    thread_start_line,
+)
+from .githubpullrequest.owners import codeowners_map
+from .githubpullrequest.panel import drafts_for_path, files_panel_text
+from .githubpullrequest.repo import abs_path, git_root, rel_path, run_git
+from .githubpullrequest.review import CommentRejected, Review
+from .githubpullrequest.state import SESSION
 
 SETTINGS_FILE = "GithubPullRequest.sublime-settings"
 

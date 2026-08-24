@@ -7,10 +7,7 @@ import os
 import subprocess
 from typing import List, Optional, Tuple
 
-try:
-    from .state import SESSION
-except ImportError:
-    from state import SESSION
+from .state import SESSION
 
 _TIMEOUT = 5
 

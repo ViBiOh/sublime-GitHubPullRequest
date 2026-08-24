@@ -1,9 +1,6 @@
 import unittest
 
-try:
-    from .urls import parse_pr_url
-except ImportError:
-    from urls import parse_pr_url
+from .urls import parse_pr_url
 
 
 class ParsePrUrlTest(unittest.TestCase):
