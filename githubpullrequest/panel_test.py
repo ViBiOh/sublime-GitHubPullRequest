@@ -6,8 +6,26 @@ from . import panel
 from .state import SESSION
 
 
-def _entry(path, additions=1, deletions=0, hunk_start=1):
-    hunks = [SimpleNamespace(new_start=hunk_start)] if hunk_start else []
+def _hunk(new_start, context=0, origin="+"):
+    """A hunk starting at `new_start` whose first real change sits `context` unchanged
+    lines in, which is what the diff's leading context looks like."""
+    lines = [
+        SimpleNamespace(origin=" ", old_lineno=new_start + i, new_lineno=new_start + i)
+        for i in range(context)
+    ]
+
+    changed = new_start + context
+    if origin == "+":
+        lines.append(SimpleNamespace(origin="+", old_lineno=None, new_lineno=changed))
+    else:
+        lines.append(SimpleNamespace(origin="-", old_lineno=changed, new_lineno=None))
+
+    return SimpleNamespace(new_start=new_start, lines=lines)
+
+
+def _entry(path, additions=1, deletions=0, hunk_start=1, hunks=None):
+    if hunks is None:
+        hunks = [_hunk(hunk_start)] if hunk_start else []
 
     return {
         "path": path,
@@ -382,11 +400,39 @@ class FirstCommentLineTest(unittest.TestCase):
 
                 self.assertEqual(panel.first_comment_line("a.py"), expected)
 
-    def test_first_hunk_line_defaults_to_one_without_hunks(self):
+    def test_first_change_line_skips_the_hunks_leading_context(self):
+        # A hunk opens with up to 3 unchanged lines, so its new_start sits above anything
+        # that changed. Reporting it made every row disagree with the line GitHub shows.
+        cases = {
+            "change_opens_the_hunk": ([_hunk(13)], 13),
+            "three_context_lines_first": ([_hunk(13, context=3)], 16),
+            "removal_anchors_after_the_context": (
+                [_hunk(13, context=3, origin="-")],
+                16,
+            ),
+            "first_hunk_is_all_context": (
+                [
+                    SimpleNamespace(
+                        new_start=5,
+                        lines=[SimpleNamespace(origin=" ", old_lineno=5, new_lineno=5)],
+                    ),
+                    _hunk(40, context=3),
+                ],
+                43,
+            ),
+        }
+
+        for name, (hunks, expected) in cases.items():
+            with self.subTest(name):
+                _load_session([_entry("a.py", hunks=hunks)])
+
+                self.assertEqual(panel.first_change_line("a.py"), expected)
+
+    def test_first_change_line_defaults_to_one_without_hunks(self):
         _load_session([_entry("a.py", hunk_start=None)])
 
-        self.assertEqual(panel.first_hunk_line("a.py"), 1)
-        self.assertEqual(panel.first_hunk_line("unknown.py"), 1)
+        self.assertEqual(panel.first_change_line("a.py"), 1)
+        self.assertEqual(panel.first_change_line("unknown.py"), 1)
 
     def test_drafts_for_path_without_a_review(self):
         SESSION.reset()

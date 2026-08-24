@@ -59,7 +59,8 @@ class DiffLine:
 
 @dataclass
 class Hunk:
-    new_start: int         # head-side start line (panel.first_hunk_line navigates to it)
+    new_start: int         # head-side start line, INCLUDING the hunk's leading context, so
+                           # NOT the first changed line (panel.first_change_line finds that)
     lines: List[DiffLine]
 
 @dataclass
@@ -107,10 +108,14 @@ def label_tag(entry: Dict) -> str: ...                 # '💡 suggestion' | 'su
 
 # panel.py    changed-files panel TEXT (colouring is the syntax file's job)
 def drafts_for_path(path) -> List[Tuple[int, Dict]]: ...   # (uid, draft), RIGHT side only
-def first_hunk_line(path) -> int: ...                      # else 1
+def first_change_line(path) -> int:
+    """Head-side line of the file's FIRST ADDED OR REMOVED line, else 1. Not the first
+       hunk's new_start: a hunk opens with up to 3 lines of context, so that sits above
+       anything that changed and disagrees with the line GitHub shows for the file. A
+       removed line has no head line, so it anchors one past the preceding context."""
 def first_comment_line(path) -> int:
     """Earliest unresolved thread or pending draft (multi-line counts from its START),
-       else earliest thread, else first hunk."""
+       else earliest thread, else first change."""
 def files_panel_text(open_paths=frozenset(), to_buffer_line=_identity_line) -> Optional[str]:
     """None when no files changed. Rows begin with a fixed-width marker slot: '● ' when the
        path is in `open_paths` (open as a tab), two spaces otherwise, so the path column
