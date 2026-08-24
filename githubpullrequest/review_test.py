@@ -26,6 +26,29 @@ _DIFF = (
     "-removed\n"
 )
 
+
+def _diff_text(old_path, head_path):
+    """A one-hunk diff for a file whose base-side path is `old_path` (None when the PR
+    adds it), shaped the way GitHub emits each case."""
+    lines = [f"diff --git a/{old_path or head_path} b/{head_path}"]
+
+    if old_path is None:
+        lines += ["new file mode 100644", "--- /dev/null"]
+    else:
+        if old_path != head_path:
+            lines += [
+                "similarity index 90%",
+                f"rename from {old_path}",
+                f"rename to {head_path}",
+            ]
+
+        lines.append(f"--- a/{old_path}")
+
+    lines += [f"+++ b/{head_path}", "@@ -1,1 +1,2 @@", " ctx", "+added"]
+
+    return "\n".join(lines) + "\n"
+
+
 _THREADS_PAGE_1 = {
     "repository": {
         "pullRequest": {
@@ -258,6 +281,32 @@ class ChangedFilesTest(unittest.TestCase):
         self.assertEqual(entry["deletions"], 1)
         self.assertFalse(entry["is_binary"])
         self.assertEqual(entry["file_diff"].path, "foo.py")
+
+    def test_base_path_is_the_merge_base_side_path(self):
+        # A renamed file does not exist at the merge base under its head path, so an
+        # entry whose base_path followed the head path would make the gutter diff fetch
+        # a blob that cannot resolve, and the file would show no highlighting at all.
+        cases = {
+            "modified": ("foo.py", "foo.py"),
+            "renamed": ("state.py", "githubpullrequest/state.py"),
+            "added": (None, "new.py"),
+        }
+
+        for name, (old_path, head_path) in cases.items():
+            with self.subTest(name):
+                review = _make_review(
+                    ScriptedGH(
+                        pr_view=json.dumps(_PR_VIEW),
+                        pr_diff=_diff_text(old_path, head_path),
+                    ),
+                    ScriptedGit(),
+                )
+                review.resolve_pr()
+
+                entry = review.changed_files()[0]
+
+                self.assertEqual(entry["path"], head_path)
+                self.assertEqual(entry["base_path"], old_path or head_path)
 
 
 class ReviewThreadsTest(unittest.TestCase):
