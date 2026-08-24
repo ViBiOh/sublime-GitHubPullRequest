@@ -104,7 +104,7 @@ tools/sublime/init.sh
 
 ## 🎮 Commands
 
-All entries are prefixed `GithubPullRequest:` in the command palette.
+Every command is under **Tools → GitHubPullRequest**, and in the command palette prefixed `GithubPullRequest:`. Settings and key bindings are under **Preferences → Package Settings → GitHubPullRequest**.
 
 | Command | What it does |
 | --- | --- |
@@ -119,9 +119,11 @@ All entries are prefixed `GithubPullRequest:` in the command palette.
 | **Discard queued comments** | Drop the whole draft queue, on GitHub too. |
 | **End review** | Clear all decorations and state. Asks what to do with anything still queued. |
 
+In a comment compose buffer, **Save** (`Cmd+S` / `Ctrl+S`) submits the comment; closing without saving cancels.
+
 ## 🔧 Settings
 
-Override any of these in `Packages/User/GithubPullRequest.sublime-settings`.
+Override any of these in `Packages/User/GithubPullRequest.sublime-settings` (**Preferences → Package Settings → GitHubPullRequest → Settings**).
 
 | Key | Default | Meaning |
 | --- | --- | --- |
@@ -143,7 +145,7 @@ Override any of these in `Packages/User/GithubPullRequest.sublime-settings`.
 
 ## 🛠️ Hacking
 
-Only `plugin.py` and `githubpullrequest/anchors.py` import `sublime`. Everything else (`urls`, `diff`, `mapper`, `render`, `gh`, `review`, `state`, `repo`, `owners`, `layout`, `labels`, `panel`) stays free of it, so it is unit-tested headlessly; those two get a syntax check instead.
+Only `plugin.py` and `githubpullrequest/anchors.py` import `sublime`. Everything else (`urls`, `diff`, `mapper`, `render`, `gh`, `review`, `state`, `repo`, `owners`, `layout`, `labels`, `panel`, `jsonc`) stays free of it, so it is unit-tested headlessly; those two get a syntax check instead.
 
 `plugin.py` is the only root-level module, because Sublime loads each root-level `.py` as a separate plugin; all shared code lives in the `githubpullrequest/` subpackage.
 

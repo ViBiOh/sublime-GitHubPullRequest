@@ -1,0 +1,118 @@
+[
+  {
+    "id": "tools",
+    "children": [
+      {
+        "caption": "GitHubPullRequest",
+        "id": "github-pull-request",
+        "children": [
+          {
+            "caption": "Load Pull Request…",
+            "command": "github_pull_request_load"
+          },
+          {
+            "caption": "Review with Agent (tmux)",
+            "command": "github_pull_request_review_in_tmux"
+          },
+          {
+            "caption": "Open Pull Request in Browser",
+            "command": "github_pull_request_open_in_browser"
+          },
+          {
+            "caption": "-",
+            "id": "navigate"
+          },
+          {
+            "caption": "Show Changed Files",
+            "command": "github_pull_request_files_panel"
+          },
+          {
+            "caption": "List All Comments",
+            "command": "github_pull_request_list_comments"
+          },
+          {
+            "caption": "Next Comment",
+            "command": "github_pull_request_next_comment"
+          },
+          {
+            "caption": "Previous Comment",
+            "command": "github_pull_request_prev_comment"
+          },
+          {
+            "caption": "-",
+            "id": "compose"
+          },
+          {
+            "caption": "Comment on Line or Selection",
+            "command": "github_pull_request_add_comment"
+          },
+          // Listed so its Save binding is discoverable: Sublime shows a command's key
+          // binding beside its menu entry, and this one is bound in the compose buffer
+          // only, where nothing else would reveal it.
+          {
+            "caption": "Submit Comment",
+            "command": "github_pull_request_submit_comment"
+          },
+          {
+            "caption": "-",
+            "id": "finish"
+          },
+          {
+            "caption": "Submit Review…",
+            "command": "github_pull_request_submit_review"
+          },
+          {
+            "caption": "Discard Queued Comments",
+            "command": "github_pull_request_discard_drafts"
+          },
+          {
+            "caption": "End Review",
+            "command": "github_pull_request_end_review"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "preferences",
+    "children": [
+      {
+        "id": "package-settings",
+        "children": [
+          {
+            "caption": "GitHubPullRequest",
+            "children": [
+              {
+                "caption": "Settings",
+                "command": "edit_settings",
+                "args": {
+                  "base_file": "${packages}/GitHubPullRequest/GithubPullRequest.sublime-settings",
+                  "default": "{\n\t$0\n}\n"
+                }
+              },
+              {
+                "caption": "Key Bindings",
+                "command": "edit_settings",
+                "args": {
+                  "base_file": "${packages}/GitHubPullRequest/Default.sublime-keymap",
+                  "user_file": "${packages}/User/Default (${platform}).sublime-keymap",
+                  "default": "[\n\t$0\n]\n"
+                }
+              },
+              {
+                "caption": "-"
+              },
+              {
+                "caption": "README",
+                "command": "open_file",
+                "args": {
+                  "file": "${packages}/GitHubPullRequest/README.md"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

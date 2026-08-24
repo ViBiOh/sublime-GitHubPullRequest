@@ -1,28 +1,21 @@
 """`label_tag`, plus a check on the packaged settings file that supplies the labels.
 
 The default label set used to be duplicated in labels.py; now the settings file is the
-only copy, so it is what has to be well-formed. Sublime settings are JSON with `//`
-comments, which json cannot parse, so the comment lines are stripped first (they are
-always whole lines here, never trailing, so no string value can be truncated)."""
+only copy, so it is what has to be well-formed."""
 
-import json
 import os
 import re
 import unittest
 
+from . import jsonc
 from .labels import label_tag
 
 _PACKAGE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _SETTINGS = os.path.join(_PACKAGE, "GithubPullRequest.sublime-settings")
 
-_COMMENT_LINE_RE = re.compile(r"^\s*//.*$", re.MULTILINE)
-
 
 def _packaged_settings():
-    with open(_SETTINGS, encoding="utf-8") as handle:
-        raw = handle.read()
-
-    return json.loads(_COMMENT_LINE_RE.sub("", raw))
+    return jsonc.load_file(_SETTINGS)
 
 
 class LabelTagTest(unittest.TestCase):
