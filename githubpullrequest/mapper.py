@@ -119,6 +119,64 @@ def head_anchor(
     return min(head_rows), max(head_rows), has_edit
 
 
+def local_version(
+    opcodes, head_start: int, head_end: int
+) -> Tuple[Optional[int], Optional[int], bool, bool]:
+    """Map an inclusive span of head-commit rows onto the buffer rows holding the
+    reviewer's LOCAL version of it. That local version is exactly what a
+    ```suggestion``` replacing those head lines must contain, so it is derived from the
+    head span the comment is anchored to rather than from the raw selection.
+
+    Returns ``(first_buffer_row, last_buffer_row, has_edit, exact)``:
+
+    * the rows are ``None`` when the span has no local counterpart at all (it was
+      deleted locally), i.e. the suggestion is an empty block that removes the lines,
+    * ``has_edit`` is False when the span is untouched, so there is nothing to suggest,
+    * ``exact`` is False when a local edit straddles a span boundary. A replaced block
+      cannot be split (its local lines do not map one-to-one to head lines), so part of
+      it would silently rewrite head lines the comment does not cover. Callers must not
+      build a suggestion then."""
+    rows = []
+    has_edit = False
+    exact = True
+
+    for tag, i1, i2, j1, j2 in opcodes:
+        if tag == "insert":
+            # Zero-width on the head side, so the overlap test below can never hold: an
+            # insertion belongs to the span when it sits between two of its rows.
+            if head_start < i1 <= head_end:
+                has_edit = True
+                rows.append(j1)
+                rows.append(j2 - 1)
+
+            continue
+
+        lo = max(i1, head_start)
+        hi = min(i2, head_end + 1)
+        if lo >= hi:
+            continue
+
+        if tag == "equal":
+            rows.append(j1 + (lo - i1))
+            rows.append(j1 + (hi - 1 - i1))
+            continue
+
+        has_edit = True
+
+        if (i1, i2) != (lo, hi):
+            exact = False
+
+        if tag == "replace":
+            rows.append(j1)
+            rows.append(j2 - 1)
+        # delete: these head rows have no local counterpart, so they contribute no row.
+
+    if not rows:
+        return None, None, has_edit, exact
+
+    return min(rows), max(rows), has_edit, exact
+
+
 def head_row_to_buffer_row(opcodes, head_row: int) -> Optional[int]:
     """Where a 0-based head-commit row currently sits in the buffer, following the
     reviewer's local edits. A changed/removed head line anchors to its block start."""

@@ -25,6 +25,8 @@ from .githubpullrequest.anchors import (
     clear_caches,
     draft_rows,
     forget_view,
+    head_span_to_local,
+    missing_head_commit,
     remap_head_row,
     selection_to_head,
     thread_row,
@@ -776,12 +778,25 @@ def _load(window):
     # cached entry, so drawing them from the main thread would otherwise pay for a
     # `git show` plus a full diff per open file before anything appeared.
     _build_session(root, pr, review, files, threads, owners)
+    stale_head = missing_head_commit()
     warm_opcodes(_pr_views())
 
     def apply():
         _decorate_all_views()
         _status(f"loaded PR #{pr['number']} ({len(files)} files)")
         window.run_command("github_pull_request_files_panel")
+
+        if stale_head:
+            # Loud on purpose: the review still works, but everything that compares the
+            # buffer to the PR head is off, and a status message is too easy to miss for
+            # a degradation this quiet (a missing suggestion prefill looks like a bug).
+            _error(
+                f"the PR head commit {stale_head[:12]} is missing from this clone, so "
+                "the buffer cannot be compared to it:\n\n"
+                "  - suggestion prefill is disabled\n"
+                "  - comment line numbers may be off\n\n"
+                "Fetch the PR branch, then reload the pull request."
+            )
 
     _main(apply)
 
@@ -1074,27 +1089,55 @@ class GithubPullRequestAddCommentCommand(sublime_plugin.TextCommand):
         # Say so, and put the final range in the compose tab title: silently posting a
         # single-line comment for a multi-line selection is the surprise we avoid here.
         target = payload_range_label(payload)
-        narrowed = payload_span(payload) != (head_start + 1, head_end + 1)
+        head_span = payload_span(payload)
+        narrowed = head_span != (head_start + 1, head_end + 1)
 
-        # A suggestion block replaces exactly the lines the comment is anchored to. Its
-        # content is the reviewer's LOCAL version of the selection, so it is only
-        # equivalent while the payload still covers the whole selection: once narrowed,
-        # GitHub would apply the full selection over the smaller range. Prefill nothing
-        # in that case rather than a block that changes lines the comment does not cover.
-        suggest = has_edit and not narrowed
+        # A suggestion block replaces exactly the lines the comment is anchored to, so
+        # its content is the reviewer's local version of THOSE head lines, not of the raw
+        # selection. The two differ whenever the payload was narrowed to the diff, or
+        # whenever the edit spans more head lines than were selected, and using the
+        # selection there would rewrite lines the comment does not cover.
+        local_start, local_end, span_edit, exact = head_span_to_local(
+            view, head_span[0] - 1, head_span[1] - 1
+        )
+        suggest = span_edit and exact
 
+        notes = []
         if narrowed:
-            dropped = ", suggestion not prefilled" if has_edit else ""
-            _status(
-                f"selection narrowed to {target} "
-                f"(the rest is outside the PR diff){dropped}"
+            notes.append(
+                f"selection narrowed to {target} (the rest is outside the PR diff)"
             )
 
-        content = "\n".join(
-            view.substr(view.line(view.text_point(row, 0)))
-            for row in range(start_row, end_row + 1)
-        )
-        suggestion_block = f"```suggestion\n{content}\n```"
+        if not span_edit and not exact:
+            # Only head_span_to_local's "no head version" path reports both: an
+            # inexact span always carries an edit. Without the PR head file there is
+            # nothing to compare the buffer against, so local edits are invisible and
+            # saying nothing would look like the plugin ignored them.
+            notes.append(
+                "PR head version of this file is unavailable "
+                "(fetch the PR branch), suggestion not prefilled"
+            )
+        elif has_edit and not suggest:
+            # There IS a local edit but no faithful block for it. Silence here reads as
+            # "the plugin missed my change", so name the reason instead.
+            notes.append(
+                "suggestion not prefilled (the local edit does not line up with the "
+                "comment range)"
+            )
+
+        if notes:
+            _status("; ".join(notes))
+
+        if local_start is None:
+            # The span has no local counterpart (deleted locally), and an empty block is
+            # how a suggestion proposes removing the lines.
+            suggestion_block = "```suggestion\n```"
+        else:
+            content = "\n".join(
+                view.substr(view.line(view.text_point(row, 0)))
+                for row in range(local_start, local_end + 1)
+            )
+            suggestion_block = f"```suggestion\n{content}\n```"
 
         def compose(tag):
             # Full comment body prefill. On a locally-changed line the suggestion block

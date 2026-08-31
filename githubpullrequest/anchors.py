@@ -18,7 +18,13 @@ import difflib
 
 import sublime
 
-from .mapper import draft_span, head_anchor, head_row_to_buffer_row, thread_span
+from .mapper import (
+    draft_span,
+    head_anchor,
+    head_row_to_buffer_row,
+    local_version,
+    thread_span,
+)
 from .repo import rel_path, run_git
 from .state import SESSION
 
@@ -64,12 +70,38 @@ def _base_rev():
     return pr.get("head_oid") or "HEAD"
 
 
+def missing_head_commit():
+    """The PR head commit, when the local clone does NOT have it; None otherwise.
+
+    Everything that compares the buffer to the PR head dies in that case: `git show
+    <oid>:<path>` fails for every file, so no local edit is ever seen (no suggestion
+    prefill) and no icon is remapped. The PR diff's line numbers are relative to that
+    commit too, so they no longer match the checkout. It happens whenever the author
+    pushed after the last fetch, and the only cure is fetching (the plugin never mutates
+    git), so the caller has to say so out loud."""
+    pr = SESSION.pr or {}
+    oid = pr.get("head_oid")
+    if not oid or not SESSION.root:
+        return None
+
+    rc, _ = run_git(SESSION.root, ["cat-file", "-e", f"{oid}^{{commit}}"])
+
+    return None if rc == 0 else oid
+
+
 def _head_opcodes(root, rel, view):
     """difflib opcodes (the PR head version as ``a``, live buffer as ``b``) for the file,
     or None when that revision has no such path. The buffer is read live, so unsaved
     edits count."""
-    rc, committed = run_git(root, ["show", f"{_base_rev()}:{rel}"])
+    rev = _base_rev()
+
+    rc, committed = run_git(root, ["show", f"{rev}:{rel}"])
     if rc != 0:
+        # Everything local-edit aware degrades to "no local edits" from here (no
+        # suggestion prefill, no remapped icons), so leaving this silent turns a fetch
+        # problem into a feature that just quietly stops working.
+        print(f"GithubPullRequest: cannot read {rel} at {rev} (git show failed)")
+
         return None
 
     committed_lines = committed.splitlines()
@@ -119,6 +151,18 @@ def selection_to_head(view, start_row, end_row):
         return start_row, end_row, False
 
     return head_anchor(opcodes, start_row, end_row)
+
+
+def head_span_to_local(view, head_start, head_end):
+    """The buffer rows holding the reviewer's local version of a head-row span, for the
+    span a comment is actually anchored to. See `mapper.local_version`; reports no edit
+    and no exact local version when the PR head version is unavailable, since nothing
+    can be compared then."""
+    opcodes = view_opcodes(view)
+    if opcodes is None:
+        return None, None, False, False
+
+    return local_version(opcodes, head_start, head_end)
 
 
 def remap_head_row(view, head_row):

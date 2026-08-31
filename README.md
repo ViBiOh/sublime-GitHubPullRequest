@@ -37,7 +37,7 @@ Select a line or a range, hit _Comment on line or selection_, and a compose buff
 **Save submits. Close cancels.** Just like a git commit editor.
 
 - 🏷️ **Conventional Comments built in.** A fuzzy label picker (`💡 suggestion`, `⚠️ issue`, `💅 nitpick`, `❓ question`, …) prefills the body. Fully configurable, or skippable, or off.
-- ✍️ **Automatic suggestions.** If the lines you are commenting on carry your own uncommitted edits, the compose buffer is prefilled with a ready-to-post ` ```suggestion ` block containing your version. Fix it, then propose the fix, in one gesture. Removing lines works too. (If your selection reached outside the PR diff and had to be narrowed, the block is skipped rather than proposing a replacement wider than the lines the comment covers.)
+- ✍️ **Automatic suggestions.** If the lines you are commenting on carry your own uncommitted edits, the compose buffer is prefilled with a ready-to-post ` ```suggestion ` block containing your version. Fix it, then propose the fix, in one gesture. Removing lines works too. (If your selection reached outside the PR diff and had to be narrowed, the block holds your version of the lines the comment actually covers, never a replacement wider than that.)
 - 📍 **Edit-proof anchoring.** Your local edits shift buffer rows; the plugin maps them back to the PR's head lines, so comments, icons, and suggestions all land on the right code even after you have been typing.
 
 ### 📦 Batched reviews, stored on GitHub

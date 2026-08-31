@@ -3,7 +3,7 @@ import unittest
 from types import SimpleNamespace
 
 from . import mapper
-from .mapper import LineMap, head_anchor, head_row_to_buffer_row
+from .mapper import LineMap, head_anchor, head_row_to_buffer_row, local_version
 
 
 def _line(origin, old_lineno, new_lineno, content):
@@ -268,6 +268,64 @@ class HeadAnchorTest(unittest.TestCase):
         self.assertTrue(has_edit)
         # head rows 2..3 ("three", "four") were removed; row 4 ("five") is the cursor.
         self.assertEqual((head_start, head_end), (2, 4))
+
+
+class LocalVersionTest(unittest.TestCase):
+    """The prefilled ```suggestion``` must hold the local version of the head lines the
+    comment is anchored to, whatever the selection was."""
+
+    def test_spans(self):
+        # (buffer text, head row span) -> (buffer_start, buffer_end, has_edit, exact)
+        cases = {
+            "untouched span": (_COMMITTED, (1, 3), (1, 3, False, True)),
+            "one replaced line": (
+                "one\ntwo\nCHANGED\nfour\nfive\n",
+                (2, 2),
+                (2, 2, True, True),
+            ),
+            "whole replaced block": (
+                "one\nA\nB\nfour\nfive\n",
+                (1, 2),
+                (1, 2, True, True),
+            ),
+            # Two head lines rewritten as one: the suggestion must carry that single
+            # local line, not one line per head line.
+            "shrinking replacement": (
+                "one\nMERGED\nfour\nfive\n",
+                (1, 2),
+                (1, 1, True, True),
+            ),
+            "growing replacement": (
+                "one\nA\nB\nC\nfour\nfive\n",
+                (1, 2),
+                (1, 3, True, True),
+            ),
+            # No local counterpart: an empty suggestion, i.e. remove these lines.
+            "deleted span": ("one\nfour\nfive\n", (1, 2), (None, None, True, True)),
+            "local insertion inside the span": (
+                "one\ntwo\nNEW\nthree\nfour\nfive\n",
+                (1, 2),
+                (1, 3, True, True),
+            ),
+            "local insertion just after the span is not pulled in": (
+                "one\ntwo\nthree\nNEW\nfour\nfive\n",
+                (1, 2),
+                (1, 2, False, True),
+            ),
+            # A replaced block cannot be split, so half of it must not be offered as a
+            # suggestion for half the head lines.
+            "replacement straddling the span end": (
+                "one\ntwo\nA\nB\nfive\n",
+                (1, 2),
+                (1, 3, True, False),
+            ),
+        }
+
+        for name, (buffer_text, (head_start, head_end), expected) in cases.items():
+            with self.subTest(name):
+                opcodes = _opcodes(_COMMITTED, buffer_text)
+
+                self.assertEqual(local_version(opcodes, head_start, head_end), expected)
 
 
 class HeadRowToBufferRowTest(unittest.TestCase):
