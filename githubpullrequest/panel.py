@@ -3,7 +3,7 @@ first comment live" line pickers it navigates to.
 
 Reads ``SESSION`` but imports no ``sublime``: this builds the panel's TEXT, while
 plugin.py owns creating the output panel and its settings. Colouring is done by
-GithubPullRequestFiles.sublime-syntax, not here."""
+GitHubPullRequestFiles.sublime-syntax, not here."""
 
 from typing import Dict, FrozenSet, List, Optional, Tuple
 

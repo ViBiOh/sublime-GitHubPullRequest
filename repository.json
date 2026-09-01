@@ -4,8 +4,8 @@
   "packages": [
     {
       "name": "GitHubPullRequest",
-      "details": "https://github.com/ViBiOh/Sublime-GithubPullRequest",
-      "homepage": "https://github.com/ViBiOh/Sublime-GithubPullRequest",
+      "details": "https://github.com/ViBiOh/Sublime-GitHubPullRequest",
+      "homepage": "https://github.com/ViBiOh/Sublime-GitHubPullRequest",
       "author": [
         "ViBiOh"
       ],

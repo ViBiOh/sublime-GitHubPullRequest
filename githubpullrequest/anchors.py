@@ -100,7 +100,7 @@ def _head_opcodes(root, rel, view):
         # Everything local-edit aware degrades to "no local edits" from here (no
         # suggestion prefill, no remapped icons), so leaving this silent turns a fetch
         # problem into a feature that just quietly stops working.
-        print(f"GithubPullRequest: cannot read {rel} at {rev} (git show failed)")
+        print(f"GitHubPullRequest: cannot read {rel} at {rev} (git show failed)")
 
         return None
 

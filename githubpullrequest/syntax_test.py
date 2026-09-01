@@ -1,6 +1,6 @@
 """Guards the files-panel styling, which is split across two files that reference each
 other only by string and would fail SILENTLY if they drifted apart: `panel.py` emits the
-open-file marker, and `GithubPullRequestFiles.sublime-syntax` matches that glyph to grey
+open-file marker, and `GitHubPullRequestFiles.sublime-syntax` matches that glyph to grey
 the row's marker and path.
 
 Stdlib only (no PyYAML on the Sublime host), so the syntax is scraped with regexes rather
@@ -13,7 +13,7 @@ import unittest
 from . import panel
 
 _PACKAGE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-_SYNTAX = os.path.join(_PACKAGE, "GithubPullRequestFiles.sublime-syntax")
+_SYNTAX = os.path.join(_PACKAGE, "GitHubPullRequestFiles.sublime-syntax")
 
 _MATCH_RE = re.compile(r"^\s*-\s*match:\s*(.+?)\s*$", re.MULTILINE)
 _SCOPE_RE = re.compile(r"^\s*(?:scope|\d+):\s*(\S+)\s*$", re.MULTILINE)

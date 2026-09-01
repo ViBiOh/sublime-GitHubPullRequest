@@ -1,6 +1,6 @@
 %YAML 1.2
 ---
-# Colors the GithubPullRequest "changed files" bottom panel. Every hue below is DISTINCT in
+# Colors the GitHubPullRequest "changed files" bottom panel. Every hue below is DISTINCT in
 # Mariana (the scheme this is tuned for), so nothing reads as a duplicate:
 #   PR header          entity.name.class  orange  hsl(32,93%,66%)
 #   +N additions       markup.inserted    green   hsl(114,31%,68%)
