@@ -1,10 +1,10 @@
-# Contributing to GithubPullRequest
+# Contributing to GitHubPullRequest
 
-First off, thank you for considering contributing to GithubPullRequest. It's people like you that make it such a great tool.
+First off, thank you for considering contributing to GitHubPullRequest. It's people like you that make it such a great tool.
 
 Following these guidelines helps to communicate that you respect the time of the people managing and developing this open source project. In return, they should reciprocate that respect in addressing your issue, assessing changes, and helping you finalize your pull requests.
 
-There are many ways to contribute: improving the documentation, submitting bug reports and feature requests, or writing code which can be incorporated into GithubPullRequest itself.
+There are many ways to contribute: improving the documentation, submitting bug reports and feature requests, or writing code which can be incorporated into GitHubPullRequest itself.
 
 ## Ground Rules
 

@@ -11,7 +11,7 @@ from . import jsonc
 from .labels import label_tag
 
 _PACKAGE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-_SETTINGS = os.path.join(_PACKAGE, "GithubPullRequest.sublime-settings")
+_SETTINGS = os.path.join(_PACKAGE, "GitHubPullRequest.sublime-settings")
 
 
 def _packaged_settings():

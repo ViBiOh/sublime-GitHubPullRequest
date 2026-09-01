@@ -1,4 +1,4 @@
-# GithubPullRequest
+# GitHubPullRequest
 
 **Review GitHub pull requests without leaving Sublime Text.** 🔍
 
@@ -7,7 +7,7 @@
 Threads render on the lines they belong to, the gutter shows the PR diff, and you can write, batch, and submit review comments from the editor. All of it on demand, and none of it touches your git state.
 
 ```
-Command Palette → GithubPullRequest: Load pull-request
+Command Palette → GitHubPullRequest: Load pull-request
 ```
 
 That is the whole ceremony. The PR is inferred from the branch you are on.
@@ -86,12 +86,12 @@ Everything that talks to GitHub goes through the [`gh`](https://cli.github.com/)
 
 ## ⚙️ Install
 
-Copy or symlink this directory into your Sublime `Packages/` folder as `GithubPullRequest`:
+Copy or symlink this directory into your Sublime `Packages/` folder as `GitHubPullRequest`:
 
 ```sh
 git clone https://github.com/ViBiOh/dotfiles.git
-ln -s "$PWD/dotfiles/tools/sublime/plugins/GithubPullRequest" \
-      "$HOME/Library/Application Support/Sublime Text/Packages/GithubPullRequest"
+ln -s "$PWD/dotfiles/tools/sublime/plugins/GitHubPullRequest" \
+      "$HOME/Library/Application Support/Sublime Text/Packages/GitHubPullRequest"
 ```
 
 On Linux the target is `~/.config/sublime-text/Packages/`, on Windows `%APPDATA%\Sublime Text\Packages\`.
@@ -104,7 +104,7 @@ tools/sublime/init.sh
 
 ## 🎮 Commands
 
-Every command is under **Tools → GitHubPullRequest**, and in the command palette prefixed `GithubPullRequest:`. Settings and key bindings are under **Preferences → Package Settings → GitHubPullRequest**.
+Every command is under **Tools → GitHubPullRequest**, and in the command palette prefixed `GitHubPullRequest:`. Settings and key bindings are under **Preferences → Package Settings → GitHubPullRequest**.
 
 | Command | What it does |
 | --- | --- |
@@ -123,7 +123,7 @@ In a comment compose buffer, **Save** (`Cmd+S` / `Ctrl+S`) submits the comment; 
 
 ## 🔧 Settings
 
-Override any of these in `Packages/User/GithubPullRequest.sublime-settings` (**Preferences → Package Settings → GitHubPullRequest → Settings**).
+Override any of these in `Packages/User/GitHubPullRequest.sublime-settings` (**Preferences → Package Settings → GitHubPullRequest → Settings**).
 
 | Key | Default | Meaning |
 | --- | --- | --- |

@@ -85,10 +85,14 @@ class MenuTest(unittest.TestCase):
 
     def test_resource_paths_use_the_published_package_name(self):
         # `${packages}/<folder>/...` is resolved against the INSTALLED folder, which
-        # Package Control names after repository.json. A stale literal here points at a
-        # path that does not exist, and the menu entry silently opens nothing.
-        with open(_MENU, encoding="utf-8") as handle:
-            referenced = set(_PACKAGES_PATH_RE.findall(handle.read()))
+        # Package Control names after repository.json. A stale literal points at a path
+        # that does not exist, and the entry silently opens nothing. Both surfaces that
+        # can carry one are checked: the menus, and the palette's `edit_settings` entry.
+        referenced = set()
+
+        for resource in (_MENU, _COMMANDS):
+            with open(resource, encoding="utf-8") as handle:
+                referenced.update(_PACKAGES_PATH_RE.findall(handle.read()))
 
         referenced.discard("User")  # the user's own config dir, not this package
 
@@ -98,7 +102,15 @@ class MenuTest(unittest.TestCase):
 class PaletteTest(unittest.TestCase):
     def test_captions_are_prefixed(self):
         # The palette is flat and unsorted by package, so the prefix is what groups
-        # these entries together when the user types the package name.
+        # these entries together when the user types the package name. The settings
+        # entry is the one exception: Sublime files every package's `edit_settings`
+        # under `Preferences:`, so it groups with its peers there instead.
         for entry in jsonc.load_file(_COMMANDS):
             with self.subTest(entry["command"]):
-                self.assertTrue(entry["caption"].startswith("GithubPullRequest: "))
+                caption = entry["caption"]
+                allowed = ("GitHubPullRequest: ", "Preferences: GitHubPullRequest ")
+
+                self.assertTrue(
+                    caption.startswith(allowed),
+                    f"caption {caption!r} starts with none of {allowed}",
+                )

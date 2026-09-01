@@ -1,6 +1,6 @@
-"""Sublime Text glue for GithubPullRequest — on-demand GitHub PR review.
+"""Sublime Text glue for GitHubPullRequest — on-demand GitHub PR review.
 
-Nothing here runs until ``GithubPullRequest: Load pull-request`` is invoked. The heavy
+Nothing here runs until ``GitHubPullRequest: Load pull-request`` is invoked. The heavy
 lifting (gh / git subprocess calls) lives in the pure-Python core; this module only:
 
 * drives those calls off the UI thread (``set_timeout_async``) and mutates the
@@ -49,7 +49,7 @@ from .githubpullrequest.repo import abs_path, git_root, rel_path, run_git
 from .githubpullrequest.review import CommentRejected, Review
 from .githubpullrequest.state import SESSION
 
-SETTINGS_FILE = "GithubPullRequest.sublime-settings"
+SETTINGS_FILE = "GitHubPullRequest.sublime-settings"
 
 # The folder this package was installed into, which is what a `Packages/<folder>/...`
 # resource path has to name. Read off the module name rather than hardcoded: Package
@@ -79,11 +79,11 @@ def _main(fn):
 
 
 def _status(message):
-    sublime.status_message(f"GithubPullRequest: {message}")
+    sublime.status_message(f"GitHubPullRequest: {message}")
 
 
 def _error(message):
-    sublime.error_message(f"GithubPullRequest: {message}")
+    sublime.error_message(f"GitHubPullRequest: {message}")
 
 
 def _detect_base_branch(root):
@@ -138,7 +138,7 @@ def _launch_agent_review(root):
         _main(lambda: _error("no tmux session found — start/attach tmux first"))
         return
 
-    # Both defaults live in GithubPullRequest.sublime-settings, which load_settings merges
+    # Both defaults live in GitHubPullRequest.sublime-settings, which load_settings merges
     # under any User override, so there is no second copy of them here to drift.
     agent = _settings().get("agent_command")
     template = _settings().get("agent_review_prompt")
@@ -917,7 +917,7 @@ def _files_panel(window):
         settings.set("gutter", False)
         settings.set("scroll_past_end", False)
 
-        panel.assign_syntax(f"Packages/{PACKAGE}/GithubPullRequestFiles.sublime-syntax")
+        panel.assign_syntax(f"Packages/{PACKAGE}/GitHubPullRequestFiles.sublime-syntax")
 
     panel.settings().set("result_base_dir", SESSION.root)
 
@@ -1151,7 +1151,7 @@ class GithubPullRequestAddCommentCommand(sublime_plugin.TextCommand):
 
         # Conventional Comments: pick a label (fuzzy) then compose. The picker is
         # skippable via its first entry and can be disabled in settings. The label set
-        # lives only in GithubPullRequest.sublime-settings, so there is no second copy
+        # lives only in GitHubPullRequest.sublime-settings, so there is no second copy
         # here to drift from it.
         labels = []
         if _settings().get("conventional_comments", True):

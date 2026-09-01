@@ -1,46 +1,54 @@
 [
   {
-    "caption": "GithubPullRequest: Load pull-request",
+    "caption": "GitHubPullRequest: Load pull-request",
     "command": "github_pull_request_load"
   },
   {
-    "caption": "GithubPullRequest: Open pull-request in browser",
+    "caption": "GitHubPullRequest: Open pull-request in browser",
     "command": "github_pull_request_open_in_browser"
   },
   {
-    "caption": "GithubPullRequest: Show changed files",
+    "caption": "GitHubPullRequest: Show changed files",
     "command": "github_pull_request_files_panel"
   },
   {
-    "caption": "GithubPullRequest: List all comments",
+    "caption": "GitHubPullRequest: List all comments",
     "command": "github_pull_request_list_comments"
   },
   {
-    "caption": "GithubPullRequest: Comment on line or selection",
+    "caption": "GitHubPullRequest: Comment on line or selection",
     "command": "github_pull_request_add_comment"
   },
   {
-    "caption": "GithubPullRequest: Next comment",
+    "caption": "GitHubPullRequest: Next comment",
     "command": "github_pull_request_next_comment"
   },
   {
-    "caption": "GithubPullRequest: Previous comment",
+    "caption": "GitHubPullRequest: Previous comment",
     "command": "github_pull_request_prev_comment"
   },
   {
-    "caption": "GithubPullRequest: Review with agent (tmux)",
+    "caption": "GitHubPullRequest: Review with agent (tmux)",
     "command": "github_pull_request_review_in_tmux"
   },
   {
-    "caption": "GithubPullRequest: Submit review",
+    "caption": "GitHubPullRequest: Submit review",
     "command": "github_pull_request_submit_review"
   },
   {
-    "caption": "GithubPullRequest: Discard queued comments",
+    "caption": "GitHubPullRequest: Discard queued comments",
     "command": "github_pull_request_discard_drafts"
   },
   {
-    "caption": "GithubPullRequest: End review",
+    "caption": "GitHubPullRequest: End review",
     "command": "github_pull_request_end_review"
+  },
+  {
+    "caption": "Preferences: GitHubPullRequest Settings",
+    "command": "edit_settings",
+    "args": {
+      "base_file": "${packages}/GitHubPullRequest/GitHubPullRequest.sublime-settings",
+      "default": "{\n\t$0\n}\n"
+    }
   }
 ]

@@ -1,4 +1,4 @@
-"""Shared code for the GithubPullRequest plugin.
+"""Shared code for the GitHubPullRequest plugin.
 
 Sublime Text imports every root-level .py of a package as an independent plugin, so
 anything shared has to live below the root: a root module importing another root module
