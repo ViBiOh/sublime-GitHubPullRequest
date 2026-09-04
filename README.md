@@ -99,7 +99,7 @@ Sublime picks the package up immediately; no restart needed.
 
 ## 🎮 Commands
 
-Every command is under **Tools → GitHubPullRequest**, and in the command palette prefixed `GitHubPullRequest:`. Settings and key bindings are under **Preferences → Package Settings → GitHubPullRequest**.
+Every command is under **Tools → GitHubPullRequest**, and in the command palette prefixed `GitHubPullRequest:`. Settings and key bindings are under **Preferences → Package Settings → GitHubPullRequest**. **Comment on line or selection** is also on the right-click menu, where it shows up only while a review is loaded and the file is one the pull-request changes.
 
 | Command | What it does |
 | --- | --- |
