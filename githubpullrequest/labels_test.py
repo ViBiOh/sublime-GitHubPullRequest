@@ -53,6 +53,7 @@ class PackagedSettingsTest(unittest.TestCase):
             "auto_show_popup",
             "show_gutter_icon",
             "hide_outdated",
+            "hide_resolved",
             "gutter_icon",
             "conventional_comments",
             "comment_labels",

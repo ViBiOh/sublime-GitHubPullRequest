@@ -9,6 +9,11 @@
   // mis-anchored; set to false to show them like any other thread.
   "hide_outdated": true,
 
+  // Hide resolved threads. They are settled business, so they are dropped everywhere
+  // (gutter, popup, panel counts, "Go to comment"). Set to false to keep reading them
+  // and to get the popup's Unresolve link back.
+  "hide_resolved": true,
+
   // Gutter icon: a built-in name ("bookmark", "dot", "circle") or a
   // "Packages/..." png path.
   "gutter_icon": "bookmark",

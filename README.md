@@ -125,6 +125,7 @@ Override any of these in `Packages/User/GitHubPullRequest.sublime-settings` (**P
 | `auto_show_popup` | `true` | Show the thread/draft popup on hover. |
 | `show_gutter_icon` | `true` | Draw gutter icons for threads and drafts. |
 | `hide_outdated` | `true` | Hide outdated threads (their code changed, so they are usually mis-anchored). |
+| `hide_resolved` | `true` | Hide resolved threads. Set to `false` to keep reading them and to get the popup's **Unresolve** link back. |
 | `gutter_icon` | `"bookmark"` | `bookmark`, `dot`, `circle`, or a `Packages/...` png. |
 | `conventional_comments` | `true` | Offer the [Conventional Comments](https://conventionalcomments.org) label picker before composing. |
 | `comment_labels` | standard set | The labels the picker offers (`{emoji, label, description}`). `emoji` is optional and, when set, prefixes the posted comment. |
