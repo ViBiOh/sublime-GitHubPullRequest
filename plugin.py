@@ -45,6 +45,7 @@ from .githubpullrequest.mapper import (
 )
 from .githubpullrequest.owners import codeowners_map
 from .githubpullrequest.panel import drafts_for_path, files_panel_text
+from .githubpullrequest.proc import no_window_kwargs
 from .githubpullrequest.repo import abs_path, git_root, rel_path, run_git
 from .githubpullrequest.review import CommentRejected, Review
 from .githubpullrequest.state import SESSION
@@ -105,6 +106,7 @@ def _attached_tmux_session():
             capture_output=True,
             text=True,
             timeout=5,
+            **no_window_kwargs(),
         )
     except (OSError, subprocess.SubprocessError):
         return None
@@ -166,7 +168,9 @@ def _launch_agent_review(root):
     args = ["tmux", "split-window", "-h", "-t", session, "-c", root, inner]
 
     try:
-        proc = subprocess.run(args, capture_output=True, text=True, timeout=10)
+        proc = subprocess.run(
+            args, capture_output=True, text=True, timeout=10, **no_window_kwargs()
+        )
     except (OSError, subprocess.SubprocessError) as err:
         _main(lambda message=str(err): _error(message))
         return

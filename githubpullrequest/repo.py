@@ -7,6 +7,7 @@ import os
 import subprocess
 from typing import List, Optional, Tuple
 
+from .proc import no_window_kwargs
 from .state import SESSION
 
 _TIMEOUT = 5
@@ -20,6 +21,7 @@ def git_root(path: str) -> Optional[str]:
             cwd=path,
             stderr=subprocess.STDOUT,
             timeout=_TIMEOUT,
+            **no_window_kwargs(),
         )
     except (OSError, subprocess.SubprocessError):
         return None
@@ -32,7 +34,12 @@ def run_git(root: str, args: List[str]) -> Tuple[int, str]:
     (1, "") on any failure, so callers only branch on the code."""
     try:
         proc = subprocess.run(
-            ["git", *args], cwd=root, capture_output=True, text=True, timeout=_TIMEOUT
+            ["git", *args],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            timeout=_TIMEOUT,
+            **no_window_kwargs(),
         )
     except (OSError, subprocess.SubprocessError):
         return 1, ""

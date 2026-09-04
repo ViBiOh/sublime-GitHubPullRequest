@@ -4,6 +4,7 @@ from typing import Callable, Dict, List, Optional, Tuple
 
 from .diff import parse_unified_diff
 from .gh import GHError
+from .proc import no_window_kwargs
 from .urls import parse_pr_url
 
 _DEFAULT_TIMEOUT = 30
@@ -162,6 +163,7 @@ def _default_git_runner(
         capture_output=True,
         text=True,
         timeout=_DEFAULT_TIMEOUT,
+        **no_window_kwargs(),
     )
 
     return proc.returncode, proc.stdout, proc.stderr

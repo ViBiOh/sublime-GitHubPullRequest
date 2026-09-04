@@ -7,6 +7,8 @@ injectable for tests, matching the pattern in gh.py / review.py."""
 import subprocess
 from typing import Callable, Dict, List, Optional, Tuple
 
+from .proc import no_window_kwargs
+
 _TIMEOUT = 10
 
 Runner = Callable[..., Tuple[int, str, str]]
@@ -15,7 +17,12 @@ Runner = Callable[..., Tuple[int, str, str]]
 
 def _default_runner(args: List[str], cwd: Optional[str]) -> Tuple[int, str, str]:
     proc = subprocess.run(
-        args, cwd=cwd, capture_output=True, text=True, timeout=_TIMEOUT
+        args,
+        cwd=cwd,
+        capture_output=True,
+        text=True,
+        timeout=_TIMEOUT,
+        **no_window_kwargs(),
     )
 
     return proc.returncode, proc.stdout, proc.stderr

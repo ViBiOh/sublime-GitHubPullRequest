@@ -2,6 +2,8 @@ import json
 import subprocess
 from typing import Callable, Dict, List, Optional, Tuple
 
+from .proc import no_window_kwargs
+
 _DEFAULT_TIMEOUT = 30
 
 _PR_VIEW_FIELDS = [
@@ -41,6 +43,7 @@ def _default_runner(
             capture_output=True,
             text=True,
             timeout=_DEFAULT_TIMEOUT,
+            **no_window_kwargs(),
         )
     except subprocess.TimeoutExpired:
         return 124, "", f"gh timed out after {_DEFAULT_TIMEOUT}s"
