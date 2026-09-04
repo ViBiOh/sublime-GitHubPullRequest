@@ -86,21 +86,16 @@ Everything that talks to GitHub goes through the [`gh`](https://cli.github.com/)
 
 ## ⚙️ Install
 
-Copy or symlink this directory into your Sublime `Packages/` folder as `GitHubPullRequest`:
+Clone into your Sublime `Packages/` folder:
 
 ```sh
-git clone https://github.com/ViBiOh/dotfiles.git
-ln -s "$PWD/dotfiles/tools/sublime/plugins/GitHubPullRequest" \
-      "$HOME/Library/Application Support/Sublime Text/Packages/GitHubPullRequest"
+git clone https://github.com/ViBiOh/Sublime-GitHubPullRequest.git \
+  "$HOME/Library/Application Support/Sublime Text/Packages/GitHubPullRequest"
 ```
 
 On Linux the target is `~/.config/sublime-text/Packages/`, on Windows `%APPDATA%\Sublime Text\Packages\`.
 
-If you use this dotfiles repo, the installer does it for you:
-
-```sh
-tools/sublime/init.sh
-```
+Sublime picks the package up immediately; no restart needed.
 
 ## 🎮 Commands
 
