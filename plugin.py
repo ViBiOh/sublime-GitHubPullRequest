@@ -1062,6 +1062,11 @@ class GithubPullRequestAddCommentCommand(sublime_plugin.TextCommand):
     def is_enabled(self):
         return SESSION.active and rel_path(self.view) in SESSION.files_by_path
 
+    def is_visible(self):
+        # Drives `Context.sublime-menu`: the right-click entry shows up only in a file the
+        # loaded review touches, rather than greying out in every buffer of every project.
+        return self.is_enabled()
+
     def run(self, edit):
         path = rel_path(self.view)
         line_map = SESSION.line_maps.get(path)

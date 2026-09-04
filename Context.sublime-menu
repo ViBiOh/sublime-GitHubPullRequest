@@ -1,0 +1,6 @@
+[
+  {
+    "caption": "Comment on Line or Selection",
+    "command": "github_pull_request_add_comment"
+  }
+]

@@ -1,11 +1,13 @@
-"""Guards the package's three entry-point surfaces against drifting apart: the command
-palette (`Default.sublime-commands`), the menus (`Main.sublime-menu`) and the key
-bindings (`Default.sublime-keymap`). All three reference commands by string only, so a
-renamed command leaves a dead entry with NO error: the item just does nothing.
+"""Guards the package's entry-point surfaces against drifting apart: the command palette
+(`Default.sublime-commands`), the menus (`Main.sublime-menu`, `Context.sublime-menu`) and
+the key bindings (`Default.sublime-keymap`). All of them reference commands by string
+only, so a renamed command leaves a dead entry with NO error: the item just does
+nothing.
 
 Stdlib only (no PyYAML/Sublime on the host), so `plugin.py` is scraped for its command
 classes rather than imported (it imports `sublime`)."""
 
+import ast
 import os
 import re
 import unittest
@@ -14,6 +16,7 @@ from . import jsonc
 
 _PACKAGE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _MENU = os.path.join(_PACKAGE, "Main.sublime-menu")
+_CONTEXT_MENU = os.path.join(_PACKAGE, "Context.sublime-menu")
 _COMMANDS = os.path.join(_PACKAGE, "Default.sublime-commands")
 _KEYMAP = os.path.join(_PACKAGE, "Default.sublime-keymap")
 _REPOSITORY = os.path.join(_PACKAGE, "repository.json")
@@ -34,6 +37,27 @@ def _plugin_command_ids():
         source = handle.read()
 
     return {_snake_case(name) for name in _COMMAND_CLASS_RE.findall(source)}
+
+
+def _commands_defining_is_visible():
+    """Command ids whose class declares `is_visible`. Parsed rather than imported, like
+    the class names above."""
+    with open(_PLUGIN, encoding="utf-8") as handle:
+        tree = ast.parse(handle.read())
+
+    found = set()
+
+    for node in tree.body:
+        if not isinstance(node, ast.ClassDef):
+            continue
+
+        methods = {
+            child.name for child in node.body if isinstance(child, ast.FunctionDef)
+        }
+        if "is_visible" in methods and node.name.endswith("Command"):
+            found.add(_snake_case(node.name[: -len("Command")]))
+
+    return found
 
 
 def _menu_commands(items):
@@ -90,13 +114,39 @@ class MenuTest(unittest.TestCase):
         # can carry one are checked: the menus, and the palette's `edit_settings` entry.
         referenced = set()
 
-        for resource in (_MENU, _COMMANDS):
+        for resource in (_MENU, _CONTEXT_MENU, _COMMANDS):
             with open(resource, encoding="utf-8") as handle:
                 referenced.update(_PACKAGES_PATH_RE.findall(handle.read()))
 
         referenced.discard("User")  # the user's own config dir, not this package
 
         self.assertEqual(referenced, {_package_name()})
+
+
+class ContextMenuTest(unittest.TestCase):
+    def setUp(self):
+        self.commands = _menu_commands(jsonc.load_file(_CONTEXT_MENU))
+
+    def test_every_context_command_is_implemented(self):
+        for command in sorted(self.commands):
+            with self.subTest(command):
+                self.assertIn(command, _plugin_command_ids())
+
+    def test_every_context_command_hides_itself(self):
+        # The context menu is shared by every buffer in every project, most of which have
+        # nothing to do with a pull-request. Without `is_visible`, an entry sits there
+        # (greyed out at best) in all of them, so a missing one is a real regression.
+        visible = _commands_defining_is_visible()
+
+        for command in sorted(self.commands):
+            with self.subTest(command):
+                self.assertIn(command, visible)
+
+    def test_context_menu_has_no_separators(self):
+        # Sublime does not drop a separator whose neighbours are all invisible, so one
+        # here would draw a stray line in every buffer where the entries are hidden.
+        for item in jsonc.load_file(_CONTEXT_MENU):
+            self.assertNotEqual(item.get("caption"), "-")
 
 
 class PaletteTest(unittest.TestCase):
