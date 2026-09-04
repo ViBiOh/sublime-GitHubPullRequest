@@ -13,8 +13,37 @@ from .state import SESSION
 _TIMEOUT = 5
 
 
+def _unresolved_root(path: str, root: str) -> str:
+    """`root` re-expressed under `path`'s own (possibly symlinked) prefix, or `root`
+    itself when `path` does not sit under it once resolved.
+
+    The re-expression is deliberately lexical: collapsing the `..` components is what
+    preserves the symlinked prefix, which resolving would throw away. That is only
+    correct while the components walked back over are real directories, so the result is
+    checked against `root` and discarded when it does not agree."""
+    inner = os.path.relpath(os.path.realpath(path), root)
+
+    candidate = path
+    if inner != os.curdir:
+        candidate = os.path.join(path, *([os.pardir] * len(inner.split(os.sep))))
+
+    candidate = os.path.normpath(candidate)
+
+    if os.path.realpath(candidate) != os.path.realpath(root):
+        return root
+
+    return candidate
+
+
 def git_root(path: str) -> Optional[str]:
-    """Repository root containing `path`, or None when it is not inside a repo."""
+    """Repository root containing `path`, or None when it is not inside a repo.
+
+    Reported in `path`'s own terms, not git's. `git rev-parse --show-toplevel` resolves
+    every symlink, while Sublime hands out the path a file was OPENED under, so a
+    symlinked checkout (say ~/workspace -> ~/go/src/github.com/...) makes the two
+    disagree: `rel_path` then walks out of the root with `..` and returns None for every
+    view, which silently kills every per-view feature (no gutter icons, no popups, no
+    thread ever matched to a buffer) even though the review loaded fine."""
     try:
         out = subprocess.check_output(
             ["git", "rev-parse", "--show-toplevel"],
@@ -26,7 +55,7 @@ def git_root(path: str) -> Optional[str]:
     except (OSError, subprocess.SubprocessError):
         return None
 
-    return out.decode("utf-8").strip()
+    return _unresolved_root(path, out.decode("utf-8").strip())
 
 
 def run_git(root: str, args: List[str]) -> Tuple[int, str]:
@@ -56,7 +85,16 @@ def rel_path(view) -> Optional[str]:
 
     rel = os.path.relpath(file_name, SESSION.root)
     if rel.startswith(".."):
-        return None
+        # The view was opened through a different spelling of the same tree than the one
+        # the session was loaded under (one side of a symlink, the other side of it).
+        # Resolving both is the only way to tell that apart from a genuinely foreign
+        # file, and it is worth the stat calls: getting it wrong drops the file out of
+        # the review entirely.
+        rel = os.path.relpath(
+            os.path.realpath(file_name), os.path.realpath(SESSION.root)
+        )
+        if rel.startswith(".."):
+            return None
 
     return rel.replace(os.sep, "/")
 

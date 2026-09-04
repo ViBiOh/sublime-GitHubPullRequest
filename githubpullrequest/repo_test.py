@@ -1,4 +1,5 @@
 import os
+import tempfile
 import unittest
 from types import SimpleNamespace
 
@@ -41,6 +42,63 @@ class RelPathTest(unittest.TestCase):
 
         self.assertEqual(absolute, os.path.join(SESSION.root, "pkg", "b.py"))
         self.assertEqual(repo.rel_path(_view(absolute)), "pkg/b.py")
+
+
+@unittest.skipUnless(hasattr(os, "symlink"), "needs symlink support")
+class SymlinkedRootTest(unittest.TestCase):
+    """A checkout reached through a symlink: `git rev-parse --show-toplevel` answers
+    with the resolved path, Sublime with the path the file was opened under."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        base = os.path.realpath(self._tmp.name)
+
+        self.real_root = os.path.join(base, "real", "repo")
+        os.makedirs(os.path.join(self.real_root, "pkg", "deep"))
+
+        self.link_root = os.path.join(base, "link")
+        os.symlink(os.path.join(base, "real"), self.link_root)
+        self.link_root = os.path.join(self.link_root, "repo")
+
+        SESSION.reset()
+
+    def tearDown(self):
+        SESSION.reset()
+        self._tmp.cleanup()
+
+    def test_unresolved_root_keeps_the_symlinked_prefix(self):
+        inside = os.path.join(self.link_root, "pkg", "deep")
+
+        self.assertEqual(repo._unresolved_root(inside, self.real_root), self.link_root)
+
+    def test_unresolved_root_at_the_root_itself(self):
+        self.assertEqual(
+            repo._unresolved_root(self.link_root, self.real_root), self.link_root
+        )
+
+    def test_unresolved_root_falls_back_when_it_does_not_agree(self):
+        outside = os.path.dirname(os.path.dirname(self.real_root))
+
+        self.assertEqual(repo._unresolved_root(outside, self.real_root), self.real_root)
+
+    def test_rel_path_matches_across_the_symlink(self):
+        # Session loaded under the symlinked prefix, view opened under the real one.
+        SESSION.root = self.link_root
+        real_file = os.path.join(self.real_root, "pkg", "b.py")
+
+        self.assertEqual(repo.rel_path(_view(real_file)), "pkg/b.py")
+
+        # And the other way round.
+        SESSION.root = self.real_root
+        link_file = os.path.join(self.link_root, "pkg", "b.py")
+
+        self.assertEqual(repo.rel_path(_view(link_file)), "pkg/b.py")
+
+    def test_rel_path_still_rejects_a_foreign_file(self):
+        SESSION.root = self.link_root
+        outside = os.path.join(os.path.dirname(self.real_root), "elsewhere", "c.py")
+
+        self.assertIsNone(repo.rel_path(_view(outside)))
 
 
 class RunGitTest(unittest.TestCase):
