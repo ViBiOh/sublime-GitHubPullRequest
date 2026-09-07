@@ -45,10 +45,11 @@ class FakeReview:
 
 
 def _rows(text):
-    """The file/notes rows: everything after the header and its blank separator."""
+    """The file/notes rows: everything after the header, the hint and the blank
+    separator."""
     lines = text.splitlines()
 
-    return lines[2:]
+    return lines[3:]
 
 
 def _header(text):
@@ -85,7 +86,10 @@ class PanelTest(unittest.TestCase):
         rows = _rows(text)
 
         self.assertEqual(_header(text), "PR #42 · T · 2 files")
-        self.assertEqual(text.splitlines()[1], "", "header needs a blank separator")
+        self.assertEqual(
+            text.splitlines()[1], panel._HINT, "the hint follows the header"
+        )
+        self.assertEqual(text.splitlines()[2], "", "the hint needs a blank separator")
         # alphabetical, from SESSION.file_entries_for_panel
         self.assertIn("+2 -0", rows[0])
         self.assertIn("a.py:1", rows[0])

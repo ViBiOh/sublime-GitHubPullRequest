@@ -23,6 +23,11 @@ _PATH_COL = 34
 _OPEN_MARKER = "● "
 _CLOSED_MARKER = "  "
 
+# Sits under the header so the panel says what its rows do. It carries no `path:line`
+# token, so result_file_regex never turns it into a click target, and the syntax file
+# greys it by its "↳ " prefix.
+_HINT = "↳ click a file or comment row to jump to the related change"
+
 
 def drafts_for_path(path: str) -> List[Tuple[int, Dict]]:
     """(uid, draft) pairs for a path's RIGHT-side queued comments; the uid (stable,
@@ -160,8 +165,9 @@ def files_panel_text(
 
     Two lines per file so each gets its own result_file_regex click target: the file
     row jumps to the first hunk, the comment sub-row (only when the file has comments)
-    jumps to the first comment. A blank line separates the header from the rows, and
-    another separates the rows from the PR description when it has one.
+    jumps to the first comment. The header is followed by `_HINT` saying so, then a
+    blank line before the rows; another blank line separates the rows from the PR
+    description when it has one.
     `open_paths` are the repo-relative paths currently open as a tab; their rows get the
     `_OPEN_MARKER` the syntax file greys.
 
@@ -198,4 +204,4 @@ def files_panel_text(
     if pending:
         header += f" · {pending} pending"
 
-    return header + "\n\n" + "\n".join(lines) + "\n"
+    return header + "\n" + _HINT + "\n\n" + "\n".join(lines) + "\n"
