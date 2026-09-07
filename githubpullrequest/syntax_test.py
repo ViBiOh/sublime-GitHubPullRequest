@@ -129,6 +129,13 @@ class SyntaxTest(unittest.TestCase):
         self.assertIsNone(rule.match("see PR #7 for context"))
         self.assertIsNone(rule.match("PR #7 without the separator"))
 
+    def test_hint_rule_matches_the_hint_panel_emits(self):
+        rule = re.compile(next(p for p in _patterns(self.syntax) if "↳" in p))
+
+        self.assertTrue(rule.match(panel._HINT), panel._HINT)
+        # A file row must keep its own colors instead of going grey as prose.
+        self.assertIsNone(rule.match(f"{panel._CLOSED_MARKER}+2 -0   a.py:1"))
+
     def test_open_row_is_grey_by_inheritance(self):
         # Greying an already-visited row relies ENTIRELY on its scopes living under
         # `comment.`, which every color scheme renders dimmed. Move one out from under

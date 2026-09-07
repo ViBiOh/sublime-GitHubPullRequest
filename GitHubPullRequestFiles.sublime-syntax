@@ -3,6 +3,7 @@
 # Colors the GitHubPullRequest "changed files" bottom panel. Every hue below is DISTINCT in
 # Mariana (the scheme this is tuned for), so nothing reads as a duplicate:
 #   PR header          entity.name.class  orange  hsl(32,93%,66%)
+#   ↳ hint line        comment.hint       grey    hsl(221,12%,69%)
 #   +N additions       markup.inserted    green   hsl(114,31%,68%)
 #   -M deletions       markup.deleted     red     hsl(357,79%,65%)
 #   (K unresolved)     support.type       blue    hsl(210,50%,60%)
@@ -25,6 +26,10 @@ contexts:
     # description line that happens to mention another PR is not painted as a header.
     - match: '^PR #\d+ ·.*$'
       scope: entity.name.class.githubpullrequest-files
+    # The hint line under the header (see panel._HINT). Grey, under `comment.`, so it
+    # explains the rows without competing with them for attention.
+    - match: '^↳ .*$'
+      scope: comment.hint.githubpullrequest-files
     # Rows for a file that is open as a tab, detected by the leading marker. Pushing a
     # context is what lets the row's `path:line` token go grey too, while the shared token
     # rules still color stats, counts and owners. The grey comes from staying under
