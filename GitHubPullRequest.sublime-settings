@@ -39,13 +39,40 @@
     { "emoji": "📝", "label": "note", "description": "an FYI, non-blocking" }
   ],
 
-  // "Review with agent (tmux)" splits your attached tmux session and runs this
-  // command with the review prompt appended as the final argument. Change it to
-  // pass extra flags or use a different agent, e.g. ["claude", "--model", "opus"]
+  // "Review with agent" asks for a tmux split or a terminal (see terminal_command)
+  // and runs this command with the review prompt appended as the final argument.
+  // Change it to pass extra flags or use a different agent, e.g. ["claude", "--model", "opus"]
   // or ["aider", "--yes"].
   "agent_command": ["claude"],
 
+  // Command behind the "Terminal" choice. "{cwd}" is the repo root and "{command}"
+  // the shell-quoted agent command. Default drives Ghostty (1.3+, macOS) through
+  // AppleScript: it splits the focused terminal to the right, or opens a window when
+  // none exists. The command is typed into your interactive login shell, so your
+  // rc files and PATH apply. Both values reach the script as argv, so no quoting
+  // is needed.
+  // macOS asks once to let Sublime control Ghostty. Use another terminal's argv for
+  // a different one, e.g. ["open", "-na", "Ghostty", "--args",
+  // "--working-directory={cwd}", "-e", "/bin/sh", "-c", "{command}"].
+  "terminal_command": [
+    "osascript",
+    "-e", "on run argv",
+    "-e", "tell application \"Ghostty\"",
+    "-e", "set cfg to new surface configuration",
+    "-e", "set initial working directory of cfg to item 1 of argv",
+    "-e", "set initial input of cfg to (item 2 of argv) & return",
+    "-e", "if (count of windows) is 0 then",
+    "-e", "new window with configuration cfg",
+    "-e", "else",
+    "-e", "split (focused terminal of selected tab of front window) direction right with configuration cfg",
+    "-e", "end if",
+    "-e", "end tell",
+    "-e", "end run",
+    "{cwd}",
+    "{command}"
+  ],
+
   // Prompt appended to agent_command. "{base}" is replaced with the base branch
   // (the loaded PR's base, else the repo default).
-  "agent_review_prompt": "Do a thorough code review of the changes on the current branch compared to origin/{base}. Start by running `git diff origin/{base}...HEAD` to see the full diff. Review correctness first, then design and maintainability. Present each finding in Conventional Comments style (e.g. 'suggestion:', 'issue:', 'nitpick:')."
+  "agent_review_prompt": "Do a thorough code review of the changes on the current branch compared to origin/{base}. Start by running `git diff origin/{base}...HEAD` to see the full diff. Review correctness first, then design, maintainability, performance and security. Present each finding in Conventional Comments style (e.g. 'suggestion:', 'issue:', 'nitpick:')."
 }
