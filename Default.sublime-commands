@@ -28,8 +28,8 @@
     "command": "github_pull_request_prev_comment"
   },
   {
-    "caption": "GitHubPullRequest: Review with agent (tmux)",
-    "command": "github_pull_request_review_in_tmux"
+    "caption": "GitHubPullRequest: Review with agent",
+    "command": "github_pull_request_review_with_agent"
   },
   {
     "caption": "GitHubPullRequest: Submit review",

@@ -59,6 +59,7 @@ class PackagedSettingsTest(unittest.TestCase):
             "comment_labels",
             "agent_command",
             "agent_review_prompt",
+            "terminal_command",
         ):
             with self.subTest(key):
                 self.assertIn(key, self.settings)
@@ -66,6 +67,13 @@ class PackagedSettingsTest(unittest.TestCase):
     def test_agent_command_is_a_list(self):
         self.assertIsInstance(self.settings["agent_command"], list)
         self.assertTrue(self.settings["agent_command"])
+
+    def test_terminal_command_carries_both_placeholders(self):
+        terminal = self.settings["terminal_command"]
+
+        self.assertIsInstance(terminal, list)
+        self.assertTrue(any("{command}" in part for part in terminal))
+        self.assertTrue(any("{cwd}" in part for part in terminal))
 
     def test_agent_prompt_only_interpolates_base(self):
         # The prompt goes through str.format, so every brace in it must be the {base}

@@ -11,8 +11,8 @@
             "command": "github_pull_request_load"
           },
           {
-            "caption": "Review with Agent (tmux)",
-            "command": "github_pull_request_review_in_tmux"
+            "caption": "Review with Agent",
+            "command": "github_pull_request_review_with_agent"
           },
           {
             "caption": "Open Pull Request in Browser",

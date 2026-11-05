@@ -69,7 +69,7 @@ Double-click, Enter, or F4 jumps to the file at the right line. If the [`codeown
 
 ### 🤖 Review with an agent
 
-_Review with agent (tmux)_ splits your tmux session and launches your coding agent (`claude` by default, configurable) with a review prompt for this branch against its base. Read its findings, then write the ones you agree with as real review comments.
+_Review with agent_ asks for a tmux split or a terminal (a Ghostty split by default, see `terminal_command`) and launches your coding agent (`claude` by default, configurable) with a review prompt for this branch against its base. Read its findings, then write the ones you agree with as real review comments.
 
 ### 🔒 It never touches git
 
@@ -82,7 +82,7 @@ Everything that talks to GitHub goes through the [`gh`](https://cli.github.com/)
 - **Sublime Text 4** (uses `minihtml`, `set_reference_document`).
 - **[`gh`](https://cli.github.com/)**, installed and authenticated (`gh auth login`).
 - You are **on the PR branch**. That is how the PR is inferred, and what makes the non-mutating diff possible.
-- _Optional:_ [`codeowners`](https://github.com/hmarr/codeowners) on `PATH` for owner annotations, and `tmux` for the agent command.
+- _Optional:_ [`codeowners`](https://github.com/hmarr/codeowners) on `PATH` for owner annotations, and `tmux` or a terminal for the agent command (Ghostty by default).
 
 ## ⚙️ Install
 
@@ -109,7 +109,7 @@ Every command is under **Tools → GitHubPullRequest**, and in the command palet
 | **List all comments** | Quick-panel of every thread across the PR; jumps to file and line. |
 | **Comment on line or selection** | Queue a review comment on the cursor line or the selected range. |
 | **Next comment** / **Previous comment** | Walk the commented lines in the current file. |
-| **Review with agent (tmux)** | Run your configured agent on this branch versus its base, in a tmux split. |
+| **Review with agent** | Run your configured agent on this branch versus its base, in a tmux split or a terminal. |
 | **Submit review** | Pick a verdict and post every queued comment as one review. |
 | **Discard queued comments** | Drop the whole draft queue, on GitHub too. |
 | **End review** | Clear all decorations and state. Asks what to do with anything still queued. |
@@ -130,6 +130,7 @@ Override any of these in `Packages/User/GitHubPullRequest.sublime-settings` (**P
 | `conventional_comments` | `true` | Offer the [Conventional Comments](https://conventionalcomments.org) label picker before composing. |
 | `comment_labels` | standard set | The labels the picker offers (`{emoji, label, description}`). `emoji` is optional and, when set, prefixes the posted comment. |
 | `agent_command` | `["claude"]` | Agent to launch for **Review with agent**, e.g. `["claude", "--model", "opus"]` or `["aider", "--yes"]`. |
+| `terminal_command` | Ghostty split via AppleScript (1.3+) | argv that opens a terminal; `{cwd}` is the repo root, `{command}` the shell-quoted agent command. |
 | `agent_review_prompt` | a review prompt | Appended to `agent_command`; `{base}` is replaced with the base branch. |
 
 ## 🧱 Known limitations

@@ -129,16 +129,36 @@ def _attached_tmux_session():
     return first
 
 
-def _launch_agent_review(root):
+def _tmux_args(root, inner):
+    """argv splitting the attached tmux session, or None when there is no session."""
+    session = _attached_tmux_session()
+    if session is None:
+        return None
+
+    return ["tmux", "split-window", "-h", "-t", session, "-c", root, inner]
+
+
+def _terminal_args(root, inner):
+    """argv from terminal_command, or None when it is not configured."""
+    terminal = _settings().get("terminal_command")
+    if not terminal:
+        return None
+
+    if isinstance(terminal, str):
+        terminal = shlex.split(terminal)
+
+    # Replaced per argument with str.replace, never str.format: the command is free
+    # text full of braces.
+    return [
+        part.replace("{cwd}", root).replace("{command}", inner) for part in terminal
+    ]
+
+
+def _launch_agent_review(root, target):
     if SESSION.active and SESSION.pr and SESSION.pr.get("base"):
         base = SESSION.pr["base"]
     else:
         base = _detect_base_branch(root)
-
-    session = _attached_tmux_session()
-    if session is None:
-        _main(lambda: _error("no tmux session found — start/attach tmux first"))
-        return
 
     # Both defaults live in GitHubPullRequest.sublime-settings, which load_settings merges
     # under any User override, so there is no second copy of them here to drift.
@@ -161,11 +181,20 @@ def _launch_agent_review(root):
         _main(lambda name=str(err): _error(f"agent_review_prompt: unknown {name}"))
         return
 
-    # Build "<agent...> <prompt>" as one shell-quoted command string so tmux runs it
-    # via the shell with the prompt as a single last argument (multiline / special
+    # Build "<agent...> <prompt>" as one shell-quoted command string so the target runs
+    # it via the shell with the prompt as a single last argument (multiline / special
     # characters are safe). The agent + args are user-configurable.
     inner = " ".join(shlex.quote(part) for part in [*agent, prompt])
-    args = ["tmux", "split-window", "-h", "-t", session, "-c", root, inner]
+    if target == "tmux":
+        args = _tmux_args(root, inner)
+        missing = "no tmux session found, start/attach tmux first"
+    else:
+        args = _terminal_args(root, inner)
+        missing = "terminal_command is not configured"
+
+    if args is None:
+        _main(lambda: _error(missing))
+        return
 
     try:
         proc = subprocess.run(
@@ -176,13 +205,11 @@ def _launch_agent_review(root):
         return
 
     if proc.returncode != 0:
-        failure = proc.stderr.strip() or "tmux failed"
+        failure = proc.stderr.strip() or f"{args[0]} failed"
         _main(lambda message=failure: _error(message))
         return
 
-    _main(
-        lambda: _status(f"review agent launched in tmux ({session}) vs origin/{base}")
-    )
+    _main(lambda: _status(f"review agent launched ({target}) vs origin/{base}"))
 
 
 def _window_cwd(window):
@@ -823,9 +850,10 @@ class GithubPullRequestLoadCommand(sublime_plugin.WindowCommand):
         _async(lambda: _load(self.window))
 
 
-class GithubPullRequestReviewInTmuxCommand(sublime_plugin.WindowCommand):
-    """Open a tmux pane running the configured review agent (default `claude`) with a
-    review prompt for this branch vs its base. Does not require a loaded PR."""
+class GithubPullRequestReviewWithAgentCommand(sublime_plugin.WindowCommand):
+    """Ask for a tmux split or a terminal, then run the configured review agent
+    (default `claude`) there with a review prompt for this branch vs its base. Does not
+    require a loaded PR."""
 
     def run(self):
         root = _window_root(self.window)
@@ -833,8 +861,16 @@ class GithubPullRequestReviewInTmuxCommand(sublime_plugin.WindowCommand):
             _error("not inside a git repository")
             return
 
-        _status("launching review agent…")
-        _async(lambda: _launch_agent_review(root))
+        targets = [("tmux", "tmux split"), ("terminal", "Terminal (terminal_command)")]
+
+        def on_done(index):
+            if index < 0:
+                return
+
+            _status("launching review agent…")
+            _async(lambda: _launch_agent_review(root, targets[index][0]))
+
+        self.window.show_quick_panel([label for _, label in targets], on_done)
 
 
 def _open_pr_url(root):
